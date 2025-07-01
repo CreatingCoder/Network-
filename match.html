@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Drag and Drop Match Game</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      text-align: center;
+      padding: 30px;
+      margin: 0;
+      background: linear-gradient(to right, #e0f7fa, #fce4ec);
+      min-height: 100vh;
+    }
+
+    h1 {
+      color: #333;
+    }
+
+    .game-grid {
+      display: flex;
+      justify-content: center;
+      gap: 80px;
+      flex-wrap: wrap;
+      margin-top: 40px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, 140px);
+      grid-template-rows: repeat(3, 140px);
+      gap: 20px;
+    }
+
+    .draggable {
+      width: 120px;
+      height: 120px;
+      border: 2px solid #333;
+      border-radius: 10px;
+      box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
+      cursor: grab;
+      background-color: white;
+    }
+
+    .dropzone {
+      width: 120px;
+      height: 120px;
+      border: 2px dashed #999;
+      border-radius: 10px;
+      background-color: white;
+      box-shadow: 1px 1px 6px rgba(0, 0, 0, 0.1);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-weight: bold;
+      color: #555;
+      transition: background-color 0.2s, border-color 0.2s;
+    }
+
+    .dropzone:hover {
+      background-color: #f1f8e9;
+      border-color: #8bc34a;
+    }
+
+    .correct {
+      background-color: #d4edda;
+      border-color: green;
+      color: green;
+    }
+
+    .message {
+      margin-top: 30px;
+      font-size: 22px;
+      font-weight: bold;
+      color: #2e7d32;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🧠 Drag and Drop Match Game</h1>
+  <p>Match each image to its correct label</p>
+
+  <div class="game-grid">
+    <div class="grid" id="imageGrid"></div>
+    <div class="grid" id="labelGrid"></div>
+  </div>
+
+  <div class="message" id="message"></div>
+
+  <script>
+    const items = [
+      {
+        id: "apple",
+        label: "Apple",
+        img: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/Red_Apple.jpg/150px-Red_Apple.jpg"
+      },
+      {
+        id: "banana",
+        label: "Banana",
+        img: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Banana-Single.jpg/150px-Banana-Single.jpg"
+      },
+      {
+        id: "cat",
+        label: "Cat",
+        img: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Cat03.jpg/150px-Cat03.jpg"
+      },
+      {
+        id: "horse",
+        label: "Horse",
+        img: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Horse_in_pasture.jpg/150px-Horse_in_pasture.jpg"
+      },
+      {
+        id: "car",
+        label: "Car",
+        img: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/03/Ferrari_488_GT3_IMG_1680.jpg/150px-Ferrari_488_GT3_IMG_1680.jpg"
+      },
+      {
+        id: "airplane",
+        label: "Airplane",
+        img: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Airbus_A380_first_flight_with_blue_sky.jpg/150px-Airbus_A380_first_flight_with_blue_sky.jpg"
+      }
+    ];
+
+    let matches = 0;
+    const total = items.length;
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+    }
+
+    function renderGame() {
+      const imageGrid = document.getElementById("imageGrid");
+      const labelGrid = document.getElementById("labelGrid");
+
+      const shuffledImages = [...items];
+      const shuffledLabels = [...items];
+
+      shuffle(shuffledImages);
+      shuffle(shuffledLabels);
+
+      shuffledImages.forEach(item => {
+        const img = document.createElement("img");
+        img.src = item.img;
+        img.id = item.id;
+        img.className = "draggable";
+        img.setAttribute("draggable", "true");
+        img.addEventListener("dragstart", ev => {
+          ev.dataTransfer.setData("text/plain", item.id);
+        });
+        imageGrid.appendChild(img);
+      });
+
+      shuffledLabels.forEach(item => {
+        const drop = document.createElement("div");
+        drop.className = "dropzone";
+        drop.setAttribute("data-match", item.id);
+        drop.textContent = item.label;
+
+        drop.addEventListener("dragover", ev => ev.preventDefault());
+        drop.addEventListener("drop", ev => {
+          ev.preventDefault();
+          const draggedId = ev.dataTransfer.getData("text/plain");
+          const expected = drop.getAttribute("data-match");
+
+          if (draggedId === expected) {
+            const draggedEl = document.getElementById(draggedId);
+            drop.innerHTML = "";
+            drop.appendChild(draggedEl);
+            drop.classList.add("correct");
+            matches++;
+            if (matches === total) {
+              document.getElementById("message").textContent = "✅ All matched! Excellent job!";
+            }
+          } else {
+            alert("❌ Incorrect match!");
+          }
+        });
+
+        labelGrid.appendChild(drop);
+      });
+    }
+
+    renderGame();
+  </script>
+
+</body>
+</html>
