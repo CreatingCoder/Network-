@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>CIDR Matching Quiz</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f9ff;
+      text-align: center;
+      padding: 20px;
+    }
+
+    h1 {
+      margin-bottom: 10px;
+    }
+
+    .grid-container {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 15px;
+      margin-bottom: 30px;
+      justify-items: center;
+    }
+
+    .box, .dropzone {
+      width: 180px;
+      min-height: 60px;
+      padding: 10px;
+      border: 2px dashed #2196f3;
+      border-radius: 8px;
+      background-color: #ffffff;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: grab;
+    }
+
+    .dropzone {
+      background-color: #e3f2fd;
+      cursor: default;
+    }
+
+    .matched {
+      background-color: #c8e6c9 !important;
+    }
+
+    #result {
+      font-size: 20px;
+      font-weight: bold;
+      color: #2e7d32;
+      margin-top: 30px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+<h1>CIDR Matching Quiz</h1>
+<p>Drag each CIDR block to the correct IP/host count box</p>
+
+<h3>CIDR Blocks</h3>
+<div class="grid-container" id="cidrList"></div>
+
+<h3>Total IPs + Usable Hosts</h3>
+<div class="grid-container" id="ipCountList"></div>
+
+<div id="result">🎉 All matched correctly! 🎉</div>
+
+<script>
+  const pairs = [
+    { cidr: "/30", ipCount: "4 IPs", usable: "2 usable" },
+    { cidr: "/29", ipCount: "8 IPs", usable: "6 usable" },
+    { cidr: "/28", ipCount: "16 IPs", usable: "14 usable" },
+    { cidr: "/27", ipCount: "32 IPs", usable: "30 usable" },
+    { cidr: "/26", ipCount: "64 IPs", usable: "62 usable" },
+    { cidr: "/25", ipCount: "128 IPs", usable: "126 usable" },
+    { cidr: "/24", ipCount: "256 IPs", usable: "254 usable" },
+    { cidr: "/23", ipCount: "512 IPs", usable: "510 usable" }
+  ];
+
+  const cidrColumn = document.getElementById('cidrList');
+  const ipColumn = document.getElementById('ipCountList');
+  const result = document.getElementById('result');
+
+  function shuffle(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+  }
+
+  function renderQuiz() {
+    shuffle(pairs);
+    const shuffledPairs = [...pairs];
+    shuffle(shuffledPairs);
+
+    // Render draggable CIDR blocks
+    pairs.forEach(item => {
+      const box = document.createElement('div');
+      box.className = 'box';
+      box.draggable = true;
+      box.dataset.id = item.cidr;
+      box.textContent = item.cidr;
+      box.addEventListener('dragstart', e => {
+        e.dataTransfer.setData('text/plain', item.cidr);
+      });
+      cidrColumn.appendChild(box);
+    });
+
+    // Render matching targets (IP+Host)
+    shuffledPairs.forEach(item => {
+      const drop = document.createElement('div');
+      drop.className = 'dropzone';
+      drop.dataset.id = item.cidr;
+      drop.textContent = `${item.ipCount} (${item.usable})`;
+
+      drop.addEventListener('dragover', e => e.preventDefault());
+
+      drop.addEventListener('drop', e => {
+        e.preventDefault();
+        const draggedId = e.dataTransfer.getData('text/plain');
+        const draggedEl = document.querySelector(`.box[data-id="${draggedId}"]`);
+
+        if (!draggedEl || drop.classList.contains('matched') || draggedEl.parentElement === drop) return;
+
+        if (drop.dataset.id === draggedId) {
+          drop.appendChild(draggedEl);
+          drop.classList.add('matched');
+          draggedEl.setAttribute('draggable', false);
+          checkWin();
+        } else {
+          alert('Incorrect match! Try again.');
+        }
+      });
+
+      ipColumn.appendChild(drop);
+    });
+  }
+
+  function checkWin() {
+    const matched = document.querySelectorAll('.dropzone.matched').length;
+    if (matched === pairs.length) {
+      result.style.display = 'block';
+    }
+  }
+
+  renderQuiz();
+</script>
+
+</body>
+</html>
