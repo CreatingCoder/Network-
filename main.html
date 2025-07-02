@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Network+ Info Hub</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: #f5f7fa;
+      color: #333;
+    }
+
+    header {
+      background: #0d47a1;
+      color: white;
+      padding: 30px 20px;
+      text-align: center;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 2.5em;
+    }
+
+    header p {
+      font-size: 1.2em;
+      margin-top: 10px;
+    }
+
+    nav {
+      background: #1976d2;
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      padding: 10px;
+      flex-wrap: wrap;
+    }
+
+    nav a {
+      color: white;
+      text-decoration: none;
+      font-weight: bold;
+      padding: 8px 15px;
+      border-radius: 4px;
+    }
+
+    nav a:hover {
+      background: #0d47a1;
+    }
+
+    .content {
+      max-width: 1000px;
+      margin: 30px auto;
+      padding: 0 20px;
+    }
+
+    .section {
+      margin-bottom: 40px;
+    }
+
+    .section h2 {
+      color: #0d47a1;
+      margin-bottom: 10px;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 20px;
+    }
+
+    .card {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      transition: transform 0.2s;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+    }
+
+    .card h3 {
+      margin-top: 0;
+      color: #1976d2;
+    }
+
+    .footer {
+      background: #eeeeee;
+      text-align: center;
+      padding: 15px;
+      font-size: 0.9em;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Network+ Info Hub</h1>
+    <p>Your trusted source for Network+ certification prep</p>
+  </header>
+
+  <nav>
+    <a href="#">Home</a>
+    <a href="#">Study Guide</a>
+    <a href="#">Practice Questions</a>
+    <a href="#">Flashcards</a>
+    <a href="#">Contact</a>
+  </nav>
+
+  <div class="content">
+
+    <div class="section">
+      <h2>About Network+</h2>
+      <p>
+        The CompTIA Network+ certification is a globally recognized credential that validates your knowledge in networking fundamentals, security, troubleshooting, and more. Whether you're preparing for the exam or refreshing your knowledge, this site has everything you need.
+      </p>
+    </div>
+
+    <div class="section">
+      <h2>Quick Topics</h2>
+      <div class="cards">
+        <div class="card">
+          <h3>Subnetting</h3>
+          <p>Learn how to calculate subnets and CIDR notation with step-by-step examples.</p>
+        </div>
+        <div class="card">
+          <h3>OSI Model</h3>
+          <p>Understand the 7 layers of the OSI model and how data flows through networks.</p>
+        </div>
+        <div class="card">
+          <h3>Common Ports</h3>
+          <p>Memorize critical TCP/UDP ports required for the Network+ exam.</p>
+        </div>
+        <div class="card">
+          <h3>Network Devices</h3>
+          <p>Compare switches, routers, firewalls, and wireless access points.</p>
+        </div>
+        <div class="card">
+          <h3>Protocols</h3>
+          <p>Explore important networking protocols like DNS, DHCP, SNMP, and HTTP/S.</p>
+        </div>
+        <div class="card">
+          <h3>Security Concepts</h3>
+          <p>Understand firewalls, VPNs, access control, and network vulnerabilities.</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="footer">
+    &copy; 2024 Network+ Info Hub. All rights reserved.
+  </div>
+
+</body>
+</html>
