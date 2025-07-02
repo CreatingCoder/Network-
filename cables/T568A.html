@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>T568A Wiring Quiz</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0fff0;
+      padding: 20px;
+      text-align: center;
+    }
+
+    h1 {
+      margin-bottom: 10px;
+    }
+
+    .row {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 30px;
+    }
+
+    .pin, .wire {
+      width: 140px;
+      height: 60px;
+      padding: 10px;
+      box-sizing: border-box;
+      border: 2px dashed #4caf50;
+      border-radius: 8px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: grab;
+      text-align: center;
+      color: black;
+    }
+
+    .pin {
+      background-color: #e0f7fa;
+      flex-direction: column;
+    }
+
+    .matched {
+      background-color: #c8e6c9 !important;
+      cursor: default;
+    }
+
+    /* Solid wire colors */
+    .wire[data-id="Green"] { background-color: #81c784; }
+    .wire[data-id="Blue"] { background-color: #90caf9; }
+    .wire[data-id="Orange"] { background-color: #ffcc80; }
+    .wire[data-id="Brown"] { background-color: #bcaaa4; }
+
+    /* Striped backgrounds for White/Color wires */
+    .wire[data-id="White/Green"] {
+      background-image: repeating-linear-gradient(
+        45deg,
+        white,
+        white 10px,
+        #81c784 10px,
+        #81c784 20px
+      );
+    }
+
+    .wire[data-id="White/Orange"] {
+      background-image: repeating-linear-gradient(
+        45deg,
+        white,
+        white 10px,
+        #ffcc80 10px,
+        #ffcc80 20px
+      );
+    }
+
+    .wire[data-id="White/Blue"] {
+      background-image: repeating-linear-gradient(
+        45deg,
+        white,
+        white 10px,
+        #90caf9 10px,
+        #90caf9 20px
+      );
+    }
+
+    .wire[data-id="White/Brown"] {
+      background-image: repeating-linear-gradient(
+        45deg,
+        white,
+        white 10px,
+        #bcaaa4 10px,
+        #bcaaa4 20px
+      );
+    }
+
+    #result {
+      font-size: 22px;
+      font-weight: bold;
+      color: #2e7d32;
+      margin-top: 30px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+<h1>T568A Ethernet Wiring Quiz</h1>
+<p>Drag each wire color to the correct pin (T568A standard)</p>
+
+<!-- Wires row (top) -->
+<div class="row" id="wires"></div>
+
+<!-- Pins row (bottom) -->
+<div class="row" id="pins">
+  <div class="pin" data-correct="White/Green">Pin 1</div>
+  <div class="pin" data-correct="Green">Pin 2</div>
+  <div class="pin" data-correct="White/Orange">Pin 3</div>
+  <div class="pin" data-correct="Blue">Pin 4</div>
+  <div class="pin" data-correct="White/Blue">Pin 5</div>
+  <div class="pin" data-correct="Orange">Pin 6</div>
+  <div class="pin" data-correct="White/Brown">Pin 7</div>
+  <div class="pin" data-correct="Brown">Pin 8</div>
+</div>
+
+<div id="result">🎉 You got the T568A wiring correct! 🎉</div>
+
+<script>
+  const wireData = [
+    { id: "White/Green", label: "White/Green" },
+    { id: "Green", label: "Green" },
+    { id: "White/Orange", label: "White/Orange" },
+    { id: "Blue", label: "Blue" },
+    { id: "White/Blue", label: "White/Blue" },
+    { id: "Orange", label: "Orange" },
+    { id: "White/Brown", label: "White/Brown" },
+    { id: "Brown", label: "Brown" }
+  ];
+
+  const wiresContainer = document.getElementById('wires');
+  const pins = document.querySelectorAll('.pin');
+  const result = document.getElementById('result');
+
+  function shuffle(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+  }
+
+  function generateWires() {
+    shuffle(wireData);
+    wireData.forEach(wire => {
+      const div = document.createElement('div');
+      div.className = 'wire';
+      div.draggable = true;
+      div.dataset.id = wire.id;
+      div.textContent = wire.label;
+      div.addEventListener('dragstart', e => {
+        e.dataTransfer.setData('text/plain', wire.id);
+      });
+      wiresContainer.appendChild(div);
+    });
+  }
+
+  pins.forEach(pin => {
+    pin.addEventListener('dragover', e => e.preventDefault());
+
+    pin.addEventListener('drop', e => {
+      e.preventDefault();
+      const wireId = e.dataTransfer.getData('text/plain');
+      const wire = document.querySelector(`.wire[data-id="${wireId}"]`);
+      
+      if (pin.classList.contains('matched') || !wire) return;
+
+      if (pin.dataset.correct === wireId) {
+        pin.appendChild(wire);
+        pin.classList.add('matched');
+        wire.setAttribute('draggable', false);
+        checkForWin();
+      } else {
+        alert('Wrong wire for this pin. Try again.');
+      }
+    });
+  });
+
+  function checkForWin() {
+    const matchedPins = document.querySelectorAll('.pin.matched').length;
+    if (matchedPins === 8) {
+      result.style.display = 'block';
+    }
+  }
+
+  generateWires();
+</script>
+
+</body>
+</html>
