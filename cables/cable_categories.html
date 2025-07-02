@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Ethernet Cable Category Matching Quiz</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5faff;
+      padding: 20px;
+      text-align: center;
+    }
+
+    h1 {
+      margin-bottom: 10px;
+    }
+
+    .container {
+      display: flex;
+      justify-content: center;
+      gap: 60px;
+      flex-wrap: wrap;
+    }
+
+    .column {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .box, .dropzone {
+      width: 270px;
+      min-height: 60px;
+      padding: 10px;
+      box-sizing: border-box;
+      border: 2px dashed #2196f3;
+      border-radius: 8px;
+      background-color: #ffffff;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: grab;
+    }
+
+    .dropzone {
+      background-color: #e3f2fd;
+      cursor: default;
+    }
+
+    .matched {
+      background-color: #c8e6c9 !important;
+    }
+
+    #result {
+      font-size: 20px;
+      font-weight: bold;
+      color: #2e7d32;
+      margin-top: 30px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Ethernet Cable Category Matching Quiz</h1>
+<p>Drag each cable type to its correct specification</p>
+
+<div class="container">
+  <div class="column" id="cables"></div>
+  <div class="column" id="dropzones"></div>
+</div>
+
+<div id="result">🎉 All correct! 🎉</div>
+
+<script>
+  const cableData = [
+    { id: "Cat 5", label: "Cat 5" },
+    { id: "Cat 5e", label: "Cat 5e" },
+    { id: "Cat 6", label: "Cat 6" },
+    { id: "Cat 6a", label: "Cat 6a" },
+    { id: "Cat 7", label: "Cat 7" },
+    { id: "Cat 8", label: "Cat 8" }
+  ];
+
+  const specData = [
+    { id: "Cat 5", text: "100 Mbps up to 100 meters (obsolete)" },
+    { id: "Cat 5e", text: "1 Gbps up to 100 meters (reduced crosstalk)" },
+    { id: "Cat 6", text: "1 Gbps up to 100 meters, 10 Gbps up to 55m" },
+    { id: "Cat 6a", text: "10 Gbps up to 100 meters (better shielding)" },
+    { id: "Cat 7", text: "10 Gbps up to 100 meters, shielded twisted pair" },
+    { id: "Cat 8", text: "40 Gbps up to 30 meters (data centers)" }
+  ];
+
+  const cablesContainer = document.getElementById('cables');
+  const dropzonesContainer = document.getElementById('dropzones');
+  const result = document.getElementById('result');
+
+  function shuffle(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+  }
+
+  function renderQuiz() {
+    shuffle(cableData);
+    shuffle(specData);
+
+    cableData.forEach(item => {
+      const div = document.createElement('div');
+      div.className = 'box';
+      div.draggable = true;
+      div.dataset.id = item.id;
+      div.textContent = item.label;
+      div.addEventListener('dragstart', e => {
+        e.dataTransfer.setData('text/plain', item.id);
+      });
+      cablesContainer.appendChild(div);
+    });
+
+    specData.forEach(item => {
+      const zone = document.createElement('div');
+      zone.className = 'dropzone';
+      zone.dataset.answer = item.id;
+      zone.textContent = item.text;
+
+      zone.addEventListener('dragover', e => e.preventDefault());
+
+      zone.addEventListener('drop', e => {
+        e.preventDefault();
+        const draggedId = e.dataTransfer.getData('text/plain');
+        const draggedEl = document.querySelector(`.box[data-id="${draggedId}"]`);
+
+        if (zone.classList.contains('matched') || !draggedEl) return;
+
+        if (zone.dataset.answer === draggedId) {
+          zone.appendChild(draggedEl);
+          zone.classList.add('matched');
+          draggedEl.setAttribute('draggable', false);
+          checkWin();
+        } else {
+          alert('Incorrect match! Try again.');
+        }
+      });
+
+      dropzonesContainer.appendChild(zone);
+    });
+  }
+
+  function checkWin() {
+    const matched = document.querySelectorAll('.dropzone.matched').length;
+    if (matched === cableData.length) {
+      result.style.display = 'block';
+    }
+  }
+
+  renderQuiz();
+</script>
+
+</body>
+</html>
