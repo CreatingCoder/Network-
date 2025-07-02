@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>802.3 Standards Quiz Match Game</title>
+  <style>
+    body {
+        font-family: 'Segoe UI', sans-serif;
+      text-align: center;
+      padding: 30px;
+      margin: 0;
+      background: linear-gradient(to right, #e0f7fa, #fce4ec);
+      min-height: 100vh;
+    }
+
+    h1 {
+      color: #34495e;
+    }
+
+    .game-container {
+      display: flex;
+      justify-content: center;
+      gap: 80px;
+      flex-wrap: wrap;
+      margin-top: 40px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, 220px);
+      grid-template-rows: repeat(4, 100px);
+      gap: 20px;
+    }
+
+    .draggable {
+      width: 200px;
+      height: 90px;
+      border: 2px solid #2980b9;
+      border-radius: 10px;
+      background-color: #ecf0f1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      padding: 10px;
+      cursor: grab;
+    }
+
+    .dropzone {
+      width: 200px;
+      height: 90px;
+      border: 2px dashed #7f8c8d;
+      border-radius: 10px;
+      background-color: #fff;
+      box-shadow: 1px 1px 6px rgba(0, 0, 0, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    .dropzone:hover {
+      background-color: #e3f2fd;
+      border-color: #3498db;
+    }
+
+    .correct {
+      background-color: #d4edda;
+      border-color: green;
+      color: green;
+    }
+
+    .message {
+      margin-top: 30px;
+      font-size: 24px;
+      font-weight: bold;
+      color: #27ae60;
+    }
+  </style>
+</head>
+<body>
+  <h1>802.3 Standards Matching Game</h1>
+  <p>Drag the correct answer to match each question</p>
+
+  <div class="game-container">
+    <div class="grid" id="questionsGrid"></div>
+    <div class="grid" id="answersGrid"></div>
+  </div>
+
+  <div class="message" id="message"></div>
+
+  <script>
+    const items = [
+      {
+        id: "q1",
+        question: "Which standard uses twisted pair and supports 100 Mbps?",
+        answer: "100BASE-TX"
+      },
+      {
+        id: "q2",
+        question: "Which standard supports 1 Gbps over fiber with long wavelength?",
+        answer: "1000BASE-LX"
+      },
+      {
+        id: "q3",
+        question: "Which standard supports 10 Gbps over copper cable?",
+        answer: "10GBASE-T"
+      },
+      {
+        id: "q4",
+        question: "Which standard supports 100 Mbps over multimode fiber?",
+        answer: "100BASE-FX"
+      },
+      {
+        id: "q5",
+        question: "Which 802.3 standard uses short-range fiber for 10 Gbps?",
+        answer: "10GBASE-SR"
+      },
+      {
+        id: "q6",
+        question: "Which standard supports 1 Gbps over twisted pair?",
+        answer: "1000BASE-T"
+      },
+      {
+        id: "q7",
+        question: "Which 802.3 standard introduced 10 Mbps Ethernet over twisted pair?",
+        answer: "10BASE-T"
+      },
+      {
+        id: "q8",
+        question: "Which 1 Gbps standard uses short-wavelength fiber?",
+        answer: "1000BASE-SX"
+      }
+    ];
+
+    let matches = 0;
+    const total = items.length;
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+    }
+
+    function renderGame() {
+      const questionsGrid = document.getElementById("questionsGrid");
+      const answersGrid = document.getElementById("answersGrid");
+
+      const shuffledQuestions = [...items];
+      const shuffledAnswers = [...items];
+
+      shuffle(shuffledQuestions);
+      shuffle(shuffledAnswers);
+
+      shuffledQuestions.forEach(item => {
+        const div = document.createElement("div");
+        div.textContent = item.question;
+        div.className = "dropzone";
+        div.setAttribute("data-match", item.id);
+        questionsGrid.appendChild(div);
+      });
+
+      shuffledAnswers.forEach(item => {
+        const div = document.createElement("div");
+        div.textContent = item.answer;
+        div.className = "draggable";
+        div.id = item.id;
+        div.setAttribute("draggable", "true");
+        div.addEventListener("dragstart", e => {
+          e.dataTransfer.setData("text/plain", item.id);
+        });
+        answersGrid.appendChild(div);
+      });
+
+      // Add drop logic after all DOM is built
+      document.querySelectorAll(".dropzone").forEach(drop => {
+        drop.addEventListener("dragover", e => e.preventDefault());
+        drop.addEventListener("drop", e => {
+          e.preventDefault();
+          const draggedId = e.dataTransfer.getData("text/plain");
+          const matchId = drop.getAttribute("data-match");
+
+          if (draggedId === matchId) {
+            const draggedEl = document.getElementById(draggedId);
+            drop.innerHTML = "";
+            drop.appendChild(draggedEl);
+            drop.classList.add("correct");
+            matches++;
+            if (matches === total) {
+              document.getElementById("message").textContent = "✅ All questions matched correctly!";
+            }
+          } else {
+            alert("❌ Incorrect. Try again.");
+          }
+        });
+      });
+    }
+
+    renderGame();
+  </script>
+</body>
+</html>
