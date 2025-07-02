@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Network+ CIDR Notation Quiz</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #eef7ff;
+      padding: 20px;
+      max-width: 800px;
+      margin: auto;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .question {
+      margin-bottom: 25px;
+      padding: 15px;
+      border: 2px solid #2196f3;
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    .question h3 {
+      margin: 0 0 10px;
+    }
+
+    .options button {
+      display: block;
+      width: 100%;
+      margin: 5px 0;
+      padding: 10px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      background: #f0f0f0;
+      cursor: pointer;
+    }
+
+    .options button.correct {
+      background-color: #c8e6c9;
+      border-color: #388e3c;
+    }
+
+    .options button.wrong {
+      background-color: #ffcdd2;
+      border-color: #d32f2f;
+    }
+
+    #score {
+      font-weight: bold;
+      text-align: center;
+      font-size: 18px;
+      margin-top: 30px;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Network+ CIDR Notation Quiz</h1>
+
+<div id="quiz"></div>
+<div id="score"></div>
+
+<script>
+  const questionsData = [
+    {
+      question: "What is the subnet mask for /24?",
+      answer: "255.255.255.0",
+      choices: ["255.255.0.0", "255.255.255.0", "255.255.255.128", "255.255.254.0"]
+    },
+    {
+      question: "How many total addresses are in a /24 network?",
+      answer: "256",
+      choices: ["254", "255", "256", "512"]
+    },
+    {
+      question: "How many total addresses in a /22 block?",
+      answer: "1024",
+      choices: ["512", "1024", "2048", "256"]
+    },
+    {
+      question: "How many usable hosts are in a /24 network?",
+      answer: "254",
+      choices: ["256", "254", "255", "253"]
+    },
+    {
+      question: "What is the subnet mask for /30?",
+      answer: "255.255.255.252",
+      choices: ["255.255.255.0", "255.255.255.248", "255.255.255.252", "255.255.255.224"]
+    },
+    {
+      question: "How many total addresses are in a /26 subnet?",
+      answer: "64",
+      choices: ["64", "62", "30", "128"]
+    },
+    {
+      question: "How many usable hosts are in a /26 network?",
+      answer: "62",
+      choices: ["64", "62", "60", "63"]
+    },
+    {
+      question: "What is the subnet mask for /16?",
+      answer: "255.255.0.0",
+      choices: ["255.0.0.0", "255.255.255.0", "255.255.0.0", "255.255.240.0"]
+    },
+    {
+      question: "How many usable hosts are in a /29 network?",
+      answer: "6",
+      choices: ["2", "4", "6", "8"]
+    },
+    {
+      question: "What subnet mask corresponds to /28?",
+      answer: "255.255.255.240",
+      choices: ["255.255.255.0", "255.255.255.248", "255.255.255.240", "255.255.255.224"]
+    },
+    {
+      question: "How many total IPs in a /28?",
+      answer: "16",
+      choices: ["14", "16", "32", "8"]
+    },
+    {
+      question: "How many usable hosts in a /28 network?",
+      answer: "14",
+      choices: ["16", "14", "12", "15"]
+    },
+    {
+      question: "What CIDR block gives you exactly 2 usable hosts?",
+      answer: "/30",
+      choices: ["/29", "/31", "/30", "/32"]
+    },
+    {
+      question: "How many usable hosts in a /32 address?",
+      answer: "0",
+      choices: ["1", "0", "2", "254"]
+    },
+    {
+      question: "How many total addresses in a /21?",
+      answer: "2048",
+      choices: ["1024", "2048", "4096", "512"]
+    }
+  ];
+
+  const quizContainer = document.getElementById('quiz');
+  const scoreDisplay = document.getElementById('score');
+  let correctCount = 0;
+
+  // Shuffle helper
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+  }
+
+  function renderQuiz() {
+    shuffle(questionsData);
+    questionsData.forEach((q, i) => {
+      const qDiv = document.createElement('div');
+      qDiv.className = 'question';
+      qDiv.dataset.answer = q.answer;
+
+      const h3 = document.createElement('h3');
+      h3.innerHTML = `${i + 1}. ${q.question}`;
+      qDiv.appendChild(h3);
+
+      const optionsDiv = document.createElement('div');
+      optionsDiv.className = 'options';
+
+      const allChoices = [...q.choices];
+      shuffle(allChoices);
+
+      allChoices.forEach(choice => {
+        const btn = document.createElement('button');
+        btn.textContent = choice;
+
+        btn.addEventListener('click', () => {
+          if (qDiv.classList.contains('answered')) return;
+
+          qDiv.classList.add('answered');
+          const buttons = qDiv.querySelectorAll('button');
+          buttons.forEach(b => {
+            b.disabled = true;
+            if (b.textContent === q.answer) b.classList.add('correct');
+            else if (b === btn) b.classList.add('wrong');
+          });
+
+          if (btn.textContent === q.answer) correctCount++;
+
+          const answered = document.querySelectorAll('.question.answered').length;
+          if (answered === questionsData.length) {
+            scoreDisplay.textContent = `✅ You got ${correctCount} out of ${questionsData.length} correct.`;
+          }
+        });
+
+        optionsDiv.appendChild(btn);
+      });
+
+      qDiv.appendChild(optionsDiv);
+      quizContainer.appendChild(qDiv);
+    });
+  }
+
+  renderQuiz();
+</script>
+
+</body>
+</html>
