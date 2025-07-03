@@ -6,195 +6,179 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #eef7ff;
+      background: #101820;
+      color: white;
       padding: 20px;
-      max-width: 700px;
+      max-width: 800px;
       margin: auto;
     }
 
     h1 {
       text-align: center;
+      margin-bottom: 20px;
+      color: #00e6e6;
     }
 
     .question {
-      margin-bottom: 20px;
+      background: #1a1f2b;
+      border: 1px solid #333;
+      border-radius: 10px;
       padding: 15px;
-      border: 2px solid #2196f3;
-      border-radius: 8px;
-      background: #fff;
+      margin-bottom: 20px;
     }
 
     .question h3 {
-      margin: 0 0 10px 0;
-    }
-
-    .options {
-      display: flex;
-      flex-direction: column;
+      margin: 0 0 10px;
     }
 
     .options button {
-      margin: 4px 0;
-      padding: 8px;
-      font-size: 16px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      background: #f0f0f0;
+      display: block;
+      background: #293445;
+      color: white;
+      border: none;
+      padding: 10px;
+      margin: 5px 0;
+      border-radius: 6px;
+      width: 100%;
+      text-align: left;
       cursor: pointer;
+      transition: background 0.3s;
     }
 
-    .options button.correct {
-      background-color: #c8e6c9;
-      border-color: #388e3c;
+    .options button:hover {
+      background: #3a4a5f;
     }
 
-    .options button.wrong {
-      background-color: #ffcdd2;
-      border-color: #d32f2f;
+    .correct {
+      background-color: #2e7d32 !important;
+    }
+
+    .wrong {
+      background-color: #c62828 !important;
     }
 
     #score {
+      font-size: 18px;
       font-weight: bold;
       text-align: center;
-      font-size: 18px;
       margin-top: 30px;
+      color: #00ffcc;
+    }
+
+    #restartBtn {
+      display: none;
+      margin: 20px auto;
+      padding: 10px 20px;
+      font-size: 16px;
+      background: #00e6e6;
+      border: none;
+      border-radius: 6px;
+      color: #101820;
+      cursor: pointer;
+    }
+
+    #restartBtn:hover {
+      background: #00cccc;
     }
   </style>
 </head>
 <body>
 
 <h1>IP Address Class Quiz</h1>
-
-<div class="question" data-answer="A">
-  <h3>1. What class is the IP address <code>12.0.0.1</code>?</h3>
-  <div class="options">
-    <button>A</button><button>B</button><button>C</button><button>D</button><button>E</button>
-  </div>
-</div>
-
-<div class="question" data-answer="B">
-  <h3>2. What class is the IP address <code>172.16.0.1</code>?</h3>
-  <div class="options">
-    <button>A</button><button>B</button><button>C</button><button>D</button><button>E</button>
-  </div>
-</div>
-
-<div class="question" data-answer="C">
-  <h3>3. What class is the IP address <code>192.168.1.1</code>?</h3>
-  <div class="options">
-    <button>A</button><button>B</button><button>C</button><button>D</button><button>E</button>
-  </div>
-</div>
-
-<div class="question" data-answer="D">
-  <h3>4. What class is the IP address <code>224.0.0.1</code>?</h3>
-  <div class="options">
-    <button>A</button><button>B</button><button>C</button><button>D</button><button>E</button>
-  </div>
-</div>
-
-<div class="question" data-answer="E">
-  <h3>5. What class is the IP address <code>240.0.0.1</code>?</h3>
-  <div class="options">
-    <button>A</button><button>B</button><button>C</button><button>D</button><button>E</button>
-  </div>
-</div>
-
-<!-- 8 New Questions Below -->
-
-<div class="question" data-answer="A">
-  <h3>6. What class is the IP address <code>10.5.6.7</code>?</h3>
-  <div class="options">
-    <button>A</button><button>B</button><button>C</button><button>D</button><button>E</button>
-  </div>
-</div>
-
-<div class="question" data-answer="B">
-  <h3>7. What class is the IP address <code>150.100.50.25</code>?</h3>
-  <div class="options">
-    <button>A</button><button>B</button><button>C</button><button>D</button><button>E</button>
-  </div>
-</div>
-
-<div class="question" data-answer="C">
-  <h3>8. What class is the IP address <code>200.100.1.10</code>?</h3>
-  <div class="options">
-    <button>A</button><button>B</button><button>C</button><button>D</button><button>E</button>
-  </div>
-</div>
-
-<div class="question" data-answer="D">
-  <h3>9. What class is the IP address <code>228.5.6.7</code>?</h3>
-  <div class="options">
-    <button>A</button><button>B</button><button>C</button><button>D</button><button>E</button>
-  </div>
-</div>
-
-<div class="question" data-answer="E">
-  <h3>10. What class is the IP address <code>245.10.10.10</code>?</h3>
-  <div class="options">
-    <button>A</button><button>B</button><button>C</button><button>D</button><button>E</button>
-  </div>
-</div>
-
-<div class="question" data-answer="A">
-  <h3>11. What class is the IP address <code>1.2.3.4</code>?</h3>
-  <div class="options">
-    <button>A</button><button>B</button><button>C</button><button>D</button><button>E</button>
-  </div>
-</div>
-
-<div class="question" data-answer="B">
-  <h3>12. What class is the IP address <code>130.22.55.2</code>?</h3>
-  <div class="options">
-    <button>A</button><button>B</button><button>C</button><button>D</button><button>E</button>
-  </div>
-</div>
-
-<div class="question" data-answer="C">
-  <h3>13. What class is the IP address <code>203.0.113.5</code>?</h3>
-  <div class="options">
-    <button>A</button><button>B</button><button>C</button><button>D</button><button>E</button>
-  </div>
-</div>
-
+<div id="quiz-container"></div>
 <div id="score"></div>
+<button id="restartBtn">Restart Quiz</button>
 
 <script>
-  const questions = document.querySelectorAll('.question');
-  const total = questions.length;
+  const questionsData = [
+    { ip: "12.0.0.1", answer: "A" },
+    { ip: "172.16.0.1", answer: "B" },
+    { ip: "192.168.1.1", answer: "C" },
+    { ip: "224.0.0.1", answer: "D" },
+    { ip: "240.0.0.1", answer: "E" },
+    { ip: "10.5.6.7", answer: "A" },
+    { ip: "150.100.50.25", answer: "B" },
+    { ip: "200.100.1.10", answer: "C" },
+    { ip: "228.5.6.7", answer: "D" },
+    { ip: "245.10.10.10", answer: "E" },
+    { ip: "1.2.3.4", answer: "A" },
+    { ip: "130.22.55.2", answer: "B" },
+    { ip: "203.0.113.5", answer: "C" },
+  ];
+
+  const container = document.getElementById('quiz-container');
   let correctCount = 0;
 
-  questions.forEach(q => {
-    const buttons = q.querySelectorAll('button');
-    const answer = q.dataset.answer;
+  function shuffle(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+  }
 
-    buttons.forEach(btn => {
-      btn.addEventListener('click', () => {
-        if (q.classList.contains('answered')) return;
+  function buildQuiz() {
+    shuffle(questionsData);
+    questionsData.forEach((q, index) => {
+      const div = document.createElement('div');
+      div.className = 'question';
+      div.dataset.answer = q.answer;
+      div.innerHTML = `
+        <h3>${index + 1}. What class is the IP address <code>${q.ip}</code>?</h3>
+        <div class="options">
+          <button>A</button>
+          <button>B</button>
+          <button>C</button>
+          <button>D</button>
+          <button>E</button>
+        </div>
+      `;
+      container.appendChild(div);
+    });
+  }
 
-        q.classList.add('answered');
+  function setupLogic() {
+    const questions = document.querySelectorAll('.question');
+    const total = questions.length;
 
-        buttons.forEach(b => {
-          if (b.textContent === answer) {
-            b.classList.add('correct');
-          } else if (b === btn) {
-            b.classList.add('wrong');
+    questions.forEach(q => {
+      const buttons = q.querySelectorAll('button');
+      const answer = q.dataset.answer;
+
+      buttons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          if (q.classList.contains('answered')) return;
+
+          q.classList.add('answered');
+
+          buttons.forEach(b => {
+            if (b.textContent === answer) {
+              b.classList.add('correct');
+            } else if (b === btn) {
+              b.classList.add('wrong');
+            }
+            b.disabled = true;
+          });
+
+          if (btn.textContent === answer) {
+            correctCount++;
           }
-          b.disabled = true;
+
+          if (document.querySelectorAll('.question.answered').length === total) {
+            document.getElementById('score').textContent =
+              `✅ You got ${correctCount} out of ${total} correct.`;
+            document.getElementById('restartBtn').style.display = 'block';
+          }
         });
-
-        if (btn.textContent === answer) {
-          correctCount++;
-        }
-
-        if (document.querySelectorAll('.question.answered').length === total) {
-          document.getElementById('score').textContent =
-            `✅ You got ${correctCount} out of ${total} correct.`;
-        }
       });
     });
+  }
+
+  document.getElementById('restartBtn').addEventListener('click', () => {
+    location.reload();
   });
+
+  buildQuiz();
+  setupLogic();
 </script>
 
 </body>
