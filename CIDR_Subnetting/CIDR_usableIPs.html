@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>CIDR Matching Quiz</title>
   <style>
     body {
@@ -34,16 +35,24 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      cursor: grab;
+      user-select: none;
     }
 
     .dropzone {
       background-color: #e3f2fd;
       cursor: default;
+      position: relative;
     }
 
     .matched {
       background-color: #c8e6c9 !important;
+    }
+
+    .dragging {
+      opacity: 0.5;
+      position: absolute;
+      z-index: 1000;
+      pointer-events: none;
     }
 
     #result {
@@ -96,20 +105,24 @@
     const shuffledPairs = [...pairs];
     shuffle(shuffledPairs);
 
-    // Render draggable CIDR blocks
     pairs.forEach(item => {
       const box = document.createElement('div');
       box.className = 'box';
       box.draggable = true;
       box.dataset.id = item.cidr;
       box.textContent = item.cidr;
+
+      // Desktop drag
       box.addEventListener('dragstart', e => {
         e.dataTransfer.setData('text/plain', item.cidr);
       });
+
+      // Mobile touch
+      box.addEventListener('touchstart', handleTouchStart, { passive: false });
+
       cidrColumn.appendChild(box);
     });
 
-    // Render matching targets (IP+Host)
     shuffledPairs.forEach(item => {
       const drop = document.createElement('div');
       drop.className = 'dropzone';
@@ -121,22 +134,60 @@
       drop.addEventListener('drop', e => {
         e.preventDefault();
         const draggedId = e.dataTransfer.getData('text/plain');
-        const draggedEl = document.querySelector(`.box[data-id="${draggedId}"]`);
-
-        if (!draggedEl || drop.classList.contains('matched') || draggedEl.parentElement === drop) return;
-
-        if (drop.dataset.id === draggedId) {
-          drop.appendChild(draggedEl);
-          drop.classList.add('matched');
-          draggedEl.setAttribute('draggable', false);
-          checkWin();
-        } else {
-          alert('Incorrect match! Try again.');
-        }
+        handleMatch(draggedId, drop);
       });
 
       ipColumn.appendChild(drop);
     });
+  }
+
+  function handleMatch(draggedId, dropTarget) {
+    const matchId = dropTarget.dataset.id;
+    const draggedEl = document.querySelector(`.box[data-id="${draggedId}"]`);
+
+    if (!draggedEl || dropTarget.classList.contains('matched') || draggedEl.parentElement === dropTarget) return;
+
+    if (matchId === draggedId) {
+      dropTarget.innerHTML = '';
+      dropTarget.appendChild(draggedEl);
+      dropTarget.classList.add('matched');
+      draggedEl.setAttribute('draggable', false);
+      checkWin();
+    } else {
+      alert('Incorrect match! Try again.');
+    }
+  }
+
+  function handleTouchStart(e) {
+    e.preventDefault();
+    const box = e.currentTarget;
+    const boxClone = box.cloneNode(true);
+    boxClone.classList.add("dragging");
+    document.body.appendChild(boxClone);
+
+    const moveAt = (touch) => {
+      boxClone.style.left = touch.pageX - 90 + "px";
+      boxClone.style.top = touch.pageY - 30 + "px";
+    };
+
+    moveAt(e.touches[0]);
+
+    const touchMove = e => moveAt(e.touches[0]);
+    const touchEnd = e => {
+      document.removeEventListener("touchmove", touchMove);
+      document.removeEventListener("touchend", touchEnd);
+      boxClone.remove();
+
+      const touch = e.changedTouches[0];
+      const dropTarget = document.elementFromPoint(touch.clientX, touch.clientY);
+
+      if (dropTarget && dropTarget.classList.contains("dropzone")) {
+        handleMatch(box.dataset.id, dropTarget);
+      }
+    };
+
+    document.addEventListener("touchmove", touchMove, { passive: false });
+    document.addEventListener("touchend", touchEnd, { passive: false });
   }
 
   function checkWin() {
