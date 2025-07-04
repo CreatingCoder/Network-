@@ -20,16 +20,16 @@
 
     .game-container {
       display: flex;
-      justify-content: center;
-      gap: 80px;
-      flex-wrap: wrap;
+      flex-direction: column;
+      align-items: center;
+      gap: 60px;
       margin-top: 40px;
     }
 
     .grid {
       display: grid;
-      grid-template-columns: repeat(2, 220px);
-      grid-template-rows: repeat(4, 100px);
+      grid-template-columns: repeat(4, 220px);
+      grid-template-rows: repeat(2, 100px);
       gap: 20px;
     }
 
@@ -110,7 +110,7 @@
       { id: "q4", question: "Which 2.4 GHz standard improved to 54 Mbps using OFDM?", answer: "802.11g" },
       { id: "q5", question: "Which dual-band standard introduced MIMO and speeds up to 600 Mbps?", answer: "802.11n" },
       { id: "q6", question: "Which early standard supports 54 Mbps but only on 5 GHz?", answer: "802.11a" },
-      { id: "q7", question: "Which standard is known as Wi-Fi 6/6e and supports both 2.4 GHz, 5 GHz, and 6 GHz?", answer: "802.11ax" },
+      { id: "q7", question: "Which standard is known as Wi-Fi 6/6e and supports 2.4/5/6 GHz?", answer: "802.11ax" },
       { id: "q8", question: "Which standard dealt with the deconfliction of satellites/radars?", answer: "802.11h" }
     ];
 
