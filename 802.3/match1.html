@@ -6,7 +6,7 @@
   <title>802.3 Standards Quiz Match Game</title>
   <style>
     body {
-        font-family: 'Segoe UI', sans-serif;
+      font-family: 'Segoe UI', sans-serif;
       text-align: center;
       padding: 30px;
       margin: 0;
@@ -45,6 +45,7 @@
       font-weight: bold;
       padding: 10px;
       cursor: grab;
+      user-select: none;
     }
 
     .dropzone {
@@ -60,6 +61,8 @@
       padding: 10px;
       font-weight: bold;
       text-align: center;
+      user-select: none;
+      position: relative;
     }
 
     .dropzone:hover {
@@ -71,6 +74,13 @@
       background-color: #d4edda;
       border-color: green;
       color: green;
+    }
+
+    .dragging {
+      opacity: 0.5;
+      position: absolute;
+      z-index: 1000;
+      pointer-events: none;
     }
 
     .message {
@@ -169,35 +179,79 @@
         div.textContent = item.answer;
         div.className = "draggable";
         div.id = item.id;
+
+        // Desktop drag support
         div.setAttribute("draggable", "true");
         div.addEventListener("dragstart", e => {
           e.dataTransfer.setData("text/plain", item.id);
         });
+
+        // Mobile touch support
+        div.addEventListener("touchstart", handleTouchStart, { passive: false });
+
         answersGrid.appendChild(div);
       });
 
-      // Add drop logic after all DOM is built
+      // Drop handling
       document.querySelectorAll(".dropzone").forEach(drop => {
         drop.addEventListener("dragover", e => e.preventDefault());
         drop.addEventListener("drop", e => {
           e.preventDefault();
           const draggedId = e.dataTransfer.getData("text/plain");
-          const matchId = drop.getAttribute("data-match");
-
-          if (draggedId === matchId) {
-            const draggedEl = document.getElementById(draggedId);
-            drop.innerHTML = "";
-            drop.appendChild(draggedEl);
-            drop.classList.add("correct");
-            matches++;
-            if (matches === total) {
-              document.getElementById("message").textContent = "✅ All questions matched correctly!";
-            }
-          } else {
-            alert("❌ Incorrect. Try again.");
-          }
+          handleMatch(draggedId, drop);
         });
       });
+    }
+
+    function handleMatch(draggedId, dropTarget) {
+      const matchId = dropTarget.getAttribute("data-match");
+      const draggedEl = document.getElementById(draggedId);
+
+      if (dropTarget.classList.contains("correct") || !draggedEl) return;
+
+      if (draggedId === matchId) {
+        dropTarget.innerHTML = "";
+        dropTarget.appendChild(draggedEl);
+        dropTarget.classList.add("correct");
+        matches++;
+        if (matches === total) {
+          document.getElementById("message").textContent = "✅ All questions matched correctly!";
+        }
+      } else {
+        alert("❌ Incorrect. Try again.");
+      }
+    }
+
+    function handleTouchStart(e) {
+      e.preventDefault();
+      const box = e.currentTarget;
+      const boxClone = box.cloneNode(true);
+      boxClone.classList.add("dragging");
+      document.body.appendChild(boxClone);
+
+      const moveAt = (touch) => {
+        boxClone.style.left = touch.pageX - 100 + "px";
+        boxClone.style.top = touch.pageY - 45 + "px";
+      };
+
+      moveAt(e.touches[0]);
+
+      const touchMove = e => moveAt(e.touches[0]);
+      const touchEnd = e => {
+        document.removeEventListener("touchmove", touchMove);
+        document.removeEventListener("touchend", touchEnd);
+        boxClone.remove();
+
+        const touch = e.changedTouches[0];
+        const dropTarget = document.elementFromPoint(touch.clientX, touch.clientY);
+
+        if (dropTarget && dropTarget.classList.contains("dropzone")) {
+          handleMatch(box.id, dropTarget);
+        }
+      };
+
+      document.addEventListener("touchmove", touchMove, { passive: false });
+      document.addEventListener("touchend", touchEnd, { passive: false });
     }
 
     renderGame();
