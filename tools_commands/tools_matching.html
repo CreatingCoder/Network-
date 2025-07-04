@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Network+ Matching Game</title>
+  <title>Network+ Tools Matching Game</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -38,11 +38,11 @@
       background-color: #ffffff;
       border-radius: 10px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-      cursor: grab;
       display: flex;
       align-items: center;
       justify-content: center;
       text-align: center;
+      user-select: none;
     }
 
     .dropzone {
@@ -52,6 +52,13 @@
     .matched {
       background-color: #c8e6c9 !important;
       cursor: default;
+    }
+
+    .dragging {
+      opacity: 0.5;
+      position: absolute;
+      z-index: 1000;
+      pointer-events: none;
     }
 
     #winMessage {
@@ -70,17 +77,17 @@
 
 <div class="grid-wrapper">
   <!-- Left Grid: Tools -->
-  <div class="grid">
-    <div class="tool" draggable="true" id="tool1">Toner Probe</div>
-    <div class="tool" draggable="true" id="tool2">Cable Tester</div>
-    <div class="tool" draggable="true" id="tool3">Loopback Plug</div>
-    <div class="tool" draggable="true" id="tool4">Crimper</div>
-    <div class="tool" draggable="true" id="tool5">Multimeter</div>
-    <div class="tool" draggable="true" id="tool6">Punchdown Tool</div>
+  <div class="grid" id="toolGrid">
+    <div class="tool" id="tool1" data-tool="tool1">Toner Probe</div>
+    <div class="tool" id="tool2" data-tool="tool2">Cable Tester</div>
+    <div class="tool" id="tool3" data-tool="tool3">Loopback Plug</div>
+    <div class="tool" id="tool4" data-tool="tool4">Crimper</div>
+    <div class="tool" id="tool5" data-tool="tool5">Multimeter</div>
+    <div class="tool" id="tool6" data-tool="tool6">Punchdown Tool</div>
   </div>
 
   <!-- Right Grid: Dropzones -->
-  <div class="grid">
+  <div class="grid" id="dropGrid">
     <div class="dropzone" data-tool="tool1">Used to trace and identify individual wires in a bundle</div>
     <div class="dropzone" data-tool="tool2">Verifies wiring, continuity, and performance of cables</div>
     <div class="dropzone" data-tool="tool3">Simulates a network connection for testing a port</div>
@@ -98,19 +105,24 @@
   const winMessage = document.getElementById('winMessage');
 
   tools.forEach(tool => {
-    tool.addEventListener('dragstart', (e) => {
+    tool.setAttribute('draggable', 'true');
+
+    // Desktop
+    tool.addEventListener('dragstart', e => {
       e.dataTransfer.setData('text/plain', tool.id);
     });
+
+    // Mobile
+    tool.addEventListener('touchstart', handleTouchStart, { passive: false });
   });
 
   zones.forEach(zone => {
-    zone.addEventListener('dragover', (e) => e.preventDefault());
+    zone.addEventListener('dragover', e => e.preventDefault());
 
-    zone.addEventListener('drop', (e) => {
+    zone.addEventListener('drop', e => {
       e.preventDefault();
       const draggedId = e.dataTransfer.getData('text/plain');
       const draggedEl = document.getElementById(draggedId);
-
       if (zone.dataset.tool === draggedId) {
         zone.appendChild(draggedEl);
         zone.classList.add('matched');
@@ -127,6 +139,47 @@
     if (matchedCount === zones.length) {
       winMessage.style.display = 'block';
     }
+  }
+
+  // Touch support
+  function handleTouchStart(e) {
+    e.preventDefault();
+    const tool = e.currentTarget;
+    const clone = tool.cloneNode(true);
+    clone.classList.add('dragging');
+    document.body.appendChild(clone);
+
+    const moveAt = (touch) => {
+      clone.style.left = touch.pageX - 150 + 'px';
+      clone.style.top = touch.pageY - 50 + 'px';
+      clone.style.position = 'absolute';
+    };
+
+    moveAt(e.touches[0]);
+
+    const onTouchMove = e => moveAt(e.touches[0]);
+
+    const onTouchEnd = e => {
+      document.removeEventListener('touchmove', onTouchMove);
+      document.removeEventListener('touchend', onTouchEnd);
+      clone.remove();
+
+      const touch = e.changedTouches[0];
+      const dropTarget = document.elementFromPoint(touch.clientX, touch.clientY);
+      if (dropTarget && dropTarget.classList.contains('dropzone')) {
+        if (dropTarget.dataset.tool === tool.id) {
+          dropTarget.appendChild(tool);
+          dropTarget.classList.add('matched');
+          tool.setAttribute('draggable', false);
+          checkWin();
+        } else {
+          alert('Incorrect match! Try again.');
+        }
+      }
+    };
+
+    document.addEventListener('touchmove', onTouchMove, { passive: false });
+    document.addEventListener('touchend', onTouchEnd, { passive: false });
   }
 </script>
 
