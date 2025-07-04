@@ -34,19 +34,26 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      cursor: grab;
       text-align: center;
       color: black;
+      user-select: none;
     }
 
     .pin {
       background-color: #e0f7fa;
       flex-direction: column;
+      position: relative;
     }
 
     .matched {
       background-color: #c8e6c9 !important;
-      cursor: default;
+    }
+
+    .dragging {
+      opacity: 0.5;
+      position: absolute;
+      z-index: 1000;
+      pointer-events: none;
     }
 
     /* Solid wire colors */
@@ -110,10 +117,8 @@
 <h1>T568B Ethernet Wiring Quiz</h1>
 <p>Drag each wire color to the correct pin (T568B standard)</p>
 
-<!-- Wires row (top) -->
 <div class="row" id="wires"></div>
 
-<!-- Pins row (bottom) -->
 <div class="row" id="pins">
   <div class="pin" data-correct="White/Orange">Pin 1</div>
   <div class="pin" data-correct="Orange">Pin 2</div>
@@ -155,24 +160,73 @@
     wireData.forEach(wire => {
       const div = document.createElement('div');
       div.className = 'wire';
-      div.draggable = true;
       div.dataset.id = wire.id;
       div.textContent = wire.label;
+
+      // Mouse drag
+      div.draggable = true;
       div.addEventListener('dragstart', e => {
         e.dataTransfer.setData('text/plain', wire.id);
       });
+
+      // Touch support
+      div.addEventListener('touchstart', handleTouchStart, { passive: false });
+
       wiresContainer.appendChild(div);
     });
   }
 
-  pins.forEach(pin => {
-    pin.addEventListener('dragover', e => e.preventDefault());
+  function handleTouchStart(e) {
+    e.preventDefault();
+    const wire = e.currentTarget;
+    const wireClone = wire.cloneNode(true);
+    wireClone.classList.add('dragging');
+    document.body.appendChild(wireClone);
 
+    const moveAt = (touch) => {
+      wireClone.style.left = touch.pageX - 70 + 'px';
+      wireClone.style.top = touch.pageY - 30 + 'px';
+    };
+
+    moveAt(e.touches[0]);
+
+    const touchMove = (e) => moveAt(e.touches[0]);
+
+    const touchEnd = (e) => {
+      document.removeEventListener('touchmove', touchMove);
+      document.removeEventListener('touchend', touchEnd);
+      wireClone.remove();
+
+      const touch = e.changedTouches[0];
+      const dropTarget = document.elementFromPoint(touch.clientX, touch.clientY);
+
+      if (dropTarget && dropTarget.classList.contains('pin') && !dropTarget.classList.contains('matched')) {
+        const correctId = dropTarget.dataset.correct;
+        const draggedId = wire.dataset.id;
+
+        if (correctId === draggedId) {
+          dropTarget.appendChild(wire);
+          dropTarget.classList.add('matched');
+          wire.setAttribute('draggable', false);
+          checkForWin();
+        } else {
+          alert('Wrong wire for this pin. Try again.');
+        }
+      }
+    };
+
+    document.addEventListener('touchmove', touchMove, { passive: false });
+    document.addEventListener('touchend', touchEnd, { passive: false });
+  }
+
+  pins.forEach(pin => {
+    // Desktop support
+    pin.addEventListener('dragover', e => e.preventDefault());
     pin.addEventListener('drop', e => {
       e.preventDefault();
       const wireId = e.dataTransfer.getData('text/plain');
       const wire = document.querySelector(`.wire[data-id="${wireId}"]`);
-      
+
       if (pin.classList.contains('matched') || !wire) return;
 
       if (pin.dataset.correct === wireId) {
