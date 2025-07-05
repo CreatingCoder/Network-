@@ -76,66 +76,85 @@
 <p>Match the IP Class to its correct range</p>
 
 <div class="grid-wrapper">
-  <!-- Left Grid: IP Classes -->
-  <div class="grid" id="classGrid">
-    <div class="item" id="A" data-match="A">Class A</div>
-    <div class="item" id="B" data-match="B">Class B</div>
-    <div class="item" id="C" data-match="C">Class C</div>
-    <div class="item" id="D" data-match="D">Class D</div>
-    <div class="item" id="E" data-match="E">Class E</div>
-  </div>
-
-  <!-- Right Grid: Ranges -->
-  <div class="grid" id="rangeGrid">
-    <div class="dropzone" data-match="A">1.0.0.0 – 126.255.255.255</div>
-    <div class="dropzone" data-match="B">128.0.0.0 – 191.255.255.255</div>
-    <div class="dropzone" data-match="C">192.0.0.0 – 223.255.255.255</div>
-    <div class="dropzone" data-match="D">224.0.0.0 – 239.255.255.255</div>
-    <div class="dropzone" data-match="E">240.0.0.0 – 255.255.255.255</div>
-  </div>
+  <div class="grid" id="classGrid"></div>
+  <div class="grid" id="rangeGrid"></div>
 </div>
 
 <div id="winMessage">🎉 All matched correctly! Great job! 🎉</div>
 
 <script>
-  const items = document.querySelectorAll('.item');
-  const zones = document.querySelectorAll('.dropzone');
+  const data = [
+    { id: "A", label: "Class A", range: "1.0.0.0 – 126.255.255.255" },
+    { id: "B", label: "Class B", range: "128.0.0.0 – 191.255.255.255" },
+    { id: "C", label: "Class C", range: "192.0.0.0 – 223.255.255.255" },
+    { id: "D", label: "Class D", range: "224.0.0.0 – 239.255.255.255" },
+    { id: "E", label: "Class E", range: "240.0.0.0 – 255.255.255.255" }
+  ];
+
+  const classGrid = document.getElementById('classGrid');
+  const rangeGrid = document.getElementById('rangeGrid');
   const winMessage = document.getElementById('winMessage');
 
-  items.forEach(item => {
-    item.setAttribute('draggable', 'true');
+  function shuffle(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+  }
 
-    // Desktop drag
-    item.addEventListener('dragstart', e => {
-      e.dataTransfer.setData('text/plain', item.id);
+  function initGame() {
+    const classItems = [...data];
+    const rangeItems = [...data];
+    shuffle(classItems);
+    shuffle(rangeItems);
+
+    classItems.forEach(item => {
+      const div = document.createElement('div');
+      div.className = 'item';
+      div.id = item.id;
+      div.textContent = item.label;
+      div.setAttribute('data-match', item.id);
+      div.setAttribute('draggable', true);
+      classGrid.appendChild(div);
+
+      // Desktop drag
+      div.addEventListener('dragstart', e => {
+        e.dataTransfer.setData('text/plain', div.id);
+      });
+
+      // Mobile touch
+      div.addEventListener('touchstart', handleTouchStart, { passive: false });
     });
 
-    // Mobile touch
-    item.addEventListener('touchstart', handleTouchStart, { passive: false });
-  });
+    rangeItems.forEach(item => {
+      const drop = document.createElement('div');
+      drop.className = 'dropzone';
+      drop.setAttribute('data-match', item.id);
+      drop.textContent = item.range;
+      rangeGrid.appendChild(drop);
 
-  zones.forEach(zone => {
-    zone.addEventListener('dragover', e => e.preventDefault());
+      drop.addEventListener('dragover', e => e.preventDefault());
 
-    zone.addEventListener('drop', e => {
-      e.preventDefault();
-      const draggedId = e.dataTransfer.getData('text/plain');
-      const draggedEl = document.getElementById(draggedId);
+      drop.addEventListener('drop', e => {
+        e.preventDefault();
+        const draggedId = e.dataTransfer.getData('text/plain');
+        const draggedEl = document.getElementById(draggedId);
 
-      if (zone.dataset.match === draggedId) {
-        zone.appendChild(draggedEl);
-        zone.classList.add('matched');
-        draggedEl.setAttribute('draggable', false);
-        checkWin();
-      } else {
-        alert('Incorrect match! Try again.');
-      }
+        if (drop.dataset.match === draggedId) {
+          drop.appendChild(draggedEl);
+          drop.classList.add('matched');
+          draggedEl.setAttribute('draggable', false);
+          checkWin();
+        } else {
+          alert('Incorrect match! Try again.');
+        }
+      });
     });
-  });
+  }
 
   function checkWin() {
     const matchedCount = document.querySelectorAll('.dropzone.matched').length;
-    if (matchedCount === zones.length) {
+    if (matchedCount === data.length) {
       winMessage.style.display = 'block';
     }
   }
@@ -180,6 +199,8 @@
     document.addEventListener('touchmove', onTouchMove, { passive: false });
     document.addEventListener('touchend', onTouchEnd, { passive: false });
   }
+
+  initGame();
 </script>
 
 </body>
