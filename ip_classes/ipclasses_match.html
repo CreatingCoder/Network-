@@ -3,102 +3,79 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>IP Address Classes Matching Game</title>
+  <title>IP Class Matching Game</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #121212;
+      background-color: #121212;
       color: #ffffff;
-      padding: 20px;
       text-align: center;
+      padding: 20px;
     }
 
     h1 {
-      margin-bottom: 20px;
       color: #00e6e6;
-    }
-
-    .grid-wrapper {
-      display: flex;
-      justify-content: center;
-      gap: 60px;
-      flex-wrap: wrap;
+      margin-bottom: 20px;
     }
 
     .grid {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 20px;
+      grid-template-columns: repeat(5, 1fr);
+      grid-template-rows: 1fr 1fr;
+      gap: 15px;
+      max-width: 1200px;
+      margin: 0 auto;
     }
 
     .item, .dropzone {
-      width: 300px;
       height: 100px;
-      padding: 12px;
+      padding: 10px;
       box-sizing: border-box;
       border: 2px dashed #00bcd4;
-      background-color: #1e1e1e;
-      color: #ffffff;
       border-radius: 10px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+      background-color: #1e1e1e;
+      font-weight: bold;
       display: flex;
       align-items: center;
       justify-content: center;
       text-align: center;
-      user-select: none;
+      cursor: grab;
     }
 
     .dropzone {
-      background-color: #2c2c2c;
+      background-color: #263238;
+      cursor: default;
     }
 
     .matched {
       background-color: #2e7d32 !important;
-      border-color: #66bb6a;
       color: #ffffff;
       cursor: default;
     }
 
-    .dragging {
-      opacity: 0.5;
-      position: absolute;
-      z-index: 1000;
-      pointer-events: none;
-    }
-
-    #winMessage {
+    #result {
       margin-top: 30px;
-      font-size: 24px;
-      font-weight: bold;
+      font-size: 22px;
       color: #00e676;
+      font-weight: bold;
       display: none;
     }
   </style>
 </head>
 <body>
 
-<h1> IP Address Class Matching Game</h1>
-<p>Drag the IP class to its correct range</p>
-
-<div class="grid-wrapper">
-  <div class="grid" id="classGrid"></div>
-  <div class="grid" id="rangeGrid"></div>
-</div>
-
-<div id="winMessage">🎉 All matched correctly! Great job! 🎉</div>
+<h1>Match the IP Classes to Their Ranges</h1>
+<div class="grid" id="gameGrid"></div>
+<div id="result">✅ All matched correctly!</div>
 
 <script>
-  const data = [
-    { id: "A", label: "Class A", range: "1.0.0.0 – 126.255.255.255" },
-    { id: "B", label: "Class B", range: "128.0.0.0 – 191.255.255.255" },
-    { id: "C", label: "Class C", range: "192.0.0.0 – 223.255.255.255" },
-    { id: "D", label: "Class D", range: "224.0.0.0 – 239.255.255.255" },
-    { id: "E", label: "Class E", range: "240.0.0.0 – 255.255.255.255" }
+  const pairs = [
+    { id: "A", label: "Class A", match: "1.0.0.0 - 126.255.255.255" },
+    { id: "B", label: "Class B", match: "128.0.0.0 - 191.255.255.255" },
+    { id: "C", label: "Class C", match: "192.0.0.0 - 223.255.255.255" },
+    { id: "D", label: "Class D", match: "224.0.0.0 - 239.255.255.255" },
+    { id: "E", label: "Class E", match: "240.0.0.0 - 255.255.255.255" }
   ];
-
-  const classGrid = document.getElementById('classGrid');
-  const rangeGrid = document.getElementById('rangeGrid');
-  const winMessage = document.getElementById('winMessage');
 
   function shuffle(array) {
     for (let i = array.length - 1; i > 0; i--) {
@@ -107,102 +84,62 @@
     }
   }
 
-  function initGame() {
-    const classItems = [...data];
-    const rangeItems = [...data];
-    shuffle(classItems);
-    shuffle(rangeItems);
+  const grid = document.getElementById("gameGrid");
+  let matchedCount = 0;
 
-    classItems.forEach(item => {
-      const div = document.createElement('div');
-      div.className = 'item';
-      div.id = item.id;
+  function renderGame() {
+    matchedCount = 0;
+    grid.innerHTML = "";
+    const shuffledItems = [...pairs];
+    const shuffledDrops = [...pairs];
+    shuffle(shuffledItems);
+    shuffle(shuffledDrops);
+
+    // Top row: draggable items
+    shuffledItems.forEach(item => {
+      const div = document.createElement("div");
+      div.className = "item";
       div.textContent = item.label;
-      div.setAttribute('data-match', item.id);
-      div.setAttribute('draggable', true);
-      classGrid.appendChild(div);
-
-      div.addEventListener('dragstart', e => {
-        e.dataTransfer.setData('text/plain', div.id);
+      div.id = item.id;
+      div.draggable = true;
+      div.addEventListener("dragstart", e => {
+        e.dataTransfer.setData("text/plain", item.id);
       });
-
-      div.addEventListener('touchstart', handleTouchStart, { passive: false });
+      grid.appendChild(div);
     });
 
-    rangeItems.forEach(item => {
-      const drop = document.createElement('div');
-      drop.className = 'dropzone';
-      drop.setAttribute('data-match', item.id);
-      drop.textContent = item.range;
-      rangeGrid.appendChild(drop);
+    // Bottom row: dropzones
+    shuffledDrops.forEach(item => {
+      const drop = document.createElement("div");
+      drop.className = "dropzone";
+      drop.dataset.id = item.id;
+      drop.textContent = item.match;
 
-      drop.addEventListener('dragover', e => e.preventDefault());
+      drop.addEventListener("dragover", e => e.preventDefault());
 
-      drop.addEventListener('drop', e => {
+      drop.addEventListener("drop", e => {
         e.preventDefault();
-        const draggedId = e.dataTransfer.getData('text/plain');
-        const draggedEl = document.getElementById(draggedId);
-
-        if (drop.dataset.match === draggedId) {
+        const draggedId = e.dataTransfer.getData("text/plain");
+        if (draggedId === drop.dataset.id) {
+          const draggedEl = document.getElementById(draggedId);
+          drop.innerHTML = "";
           drop.appendChild(draggedEl);
-          drop.classList.add('matched');
-          draggedEl.setAttribute('draggable', false);
-          checkWin();
+          drop.classList.add("matched");
+          draggedEl.setAttribute("draggable", false);
+          matchedCount++;
+          if (matchedCount === pairs.length) {
+            document.getElementById("result").style.display = "block";
+          }
         } else {
-          alert('Incorrect match! Try again.');
+          alert("❌ Incorrect match. Try again!");
         }
       });
+
+      grid.appendChild(drop);
     });
   }
 
-  function checkWin() {
-    const matchedCount = document.querySelectorAll('.dropzone.matched').length;
-    if (matchedCount === data.length) {
-      winMessage.style.display = 'block';
-    }
-  }
-
-  function handleTouchStart(e) {
-    e.preventDefault();
-    const item = e.currentTarget;
-    const clone = item.cloneNode(true);
-    clone.classList.add('dragging');
-    document.body.appendChild(clone);
-
-    const moveAt = (touch) => {
-      clone.style.left = touch.pageX - 150 + 'px';
-      clone.style.top = touch.pageY - 50 + 'px';
-      clone.style.position = 'absolute';
-    };
-
-    moveAt(e.touches[0]);
-
-    const onTouchMove = e => moveAt(e.touches[0]);
-
-    const onTouchEnd = e => {
-      document.removeEventListener('touchmove', onTouchMove);
-      document.removeEventListener('touchend', onTouchEnd);
-      clone.remove();
-
-      const touch = e.changedTouches[0];
-      const dropTarget = document.elementFromPoint(touch.clientX, touch.clientY);
-      if (dropTarget && dropTarget.classList.contains('dropzone')) {
-        if (dropTarget.dataset.match === item.id) {
-          dropTarget.appendChild(item);
-          dropTarget.classList.add('matched');
-          item.setAttribute('draggable', false);
-          checkWin();
-        } else {
-          alert('Incorrect match! Try again.');
-        }
-      }
-    };
-
-    document.addEventListener('touchmove', onTouchMove, { passive: false });
-    document.addEventListener('touchend', onTouchEnd, { passive: false });
-  }
-
-  initGame();
+  renderGame();
 </script>
 
 </body>
