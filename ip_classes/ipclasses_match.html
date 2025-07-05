@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>IP Address Classes Matching Game</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #e3f2fd;
+      padding: 20px;
+      text-align: center;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+    }
+
+    .grid-wrapper {
+      display: flex;
+      justify-content: center;
+      gap: 60px;
+      flex-wrap: wrap;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+    }
+
+    .item, .dropzone {
+      width: 300px;
+      height: 100px;
+      padding: 12px;
+      box-sizing: border-box;
+      border: 2px dashed #1976d2;
+      background-color: #ffffff;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      user-select: none;
+    }
+
+    .dropzone {
+      background-color: #fff8e1;
+    }
+
+    .matched {
+      background-color: #c8e6c9 !important;
+      cursor: default;
+    }
+
+    .dragging {
+      opacity: 0.5;
+      position: absolute;
+      z-index: 1000;
+      pointer-events: none;
+    }
+
+    #winMessage {
+      margin-top: 30px;
+      font-size: 24px;
+      font-weight: bold;
+      color: #388e3c;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+<h1>IP Address Class Matching Game</h1>
+<p>Match the IP Class to its correct range</p>
+
+<div class="grid-wrapper">
+  <!-- Left Grid: IP Classes -->
+  <div class="grid" id="classGrid">
+    <div class="item" id="A" data-match="A">Class A</div>
+    <div class="item" id="B" data-match="B">Class B</div>
+    <div class="item" id="C" data-match="C">Class C</div>
+    <div class="item" id="D" data-match="D">Class D</div>
+    <div class="item" id="E" data-match="E">Class E</div>
+  </div>
+
+  <!-- Right Grid: Ranges -->
+  <div class="grid" id="rangeGrid">
+    <div class="dropzone" data-match="A">1.0.0.0 – 126.255.255.255</div>
+    <div class="dropzone" data-match="B">128.0.0.0 – 191.255.255.255</div>
+    <div class="dropzone" data-match="C">192.0.0.0 – 223.255.255.255</div>
+    <div class="dropzone" data-match="D">224.0.0.0 – 239.255.255.255</div>
+    <div class="dropzone" data-match="E">240.0.0.0 – 255.255.255.255</div>
+  </div>
+</div>
+
+<div id="winMessage">🎉 All matched correctly! Great job! 🎉</div>
+
+<script>
+  const items = document.querySelectorAll('.item');
+  const zones = document.querySelectorAll('.dropzone');
+  const winMessage = document.getElementById('winMessage');
+
+  items.forEach(item => {
+    item.setAttribute('draggable', 'true');
+
+    // Desktop drag
+    item.addEventListener('dragstart', e => {
+      e.dataTransfer.setData('text/plain', item.id);
+    });
+
+    // Mobile touch
+    item.addEventListener('touchstart', handleTouchStart, { passive: false });
+  });
+
+  zones.forEach(zone => {
+    zone.addEventListener('dragover', e => e.preventDefault());
+
+    zone.addEventListener('drop', e => {
+      e.preventDefault();
+      const draggedId = e.dataTransfer.getData('text/plain');
+      const draggedEl = document.getElementById(draggedId);
+
+      if (zone.dataset.match === draggedId) {
+        zone.appendChild(draggedEl);
+        zone.classList.add('matched');
+        draggedEl.setAttribute('draggable', false);
+        checkWin();
+      } else {
+        alert('Incorrect match! Try again.');
+      }
+    });
+  });
+
+  function checkWin() {
+    const matchedCount = document.querySelectorAll('.dropzone.matched').length;
+    if (matchedCount === zones.length) {
+      winMessage.style.display = 'block';
+    }
+  }
+
+  // Mobile support
+  function handleTouchStart(e) {
+    e.preventDefault();
+    const item = e.currentTarget;
+    const clone = item.cloneNode(true);
+    clone.classList.add('dragging');
+    document.body.appendChild(clone);
+
+    const moveAt = (touch) => {
+      clone.style.left = touch.pageX - 150 + 'px';
+      clone.style.top = touch.pageY - 50 + 'px';
+      clone.style.position = 'absolute';
+    };
+
+    moveAt(e.touches[0]);
+
+    const onTouchMove = e => moveAt(e.touches[0]);
+
+    const onTouchEnd = e => {
+      document.removeEventListener('touchmove', onTouchMove);
+      document.removeEventListener('touchend', onTouchEnd);
+      clone.remove();
+
+      const touch = e.changedTouches[0];
+      const dropTarget = document.elementFromPoint(touch.clientX, touch.clientY);
+      if (dropTarget && dropTarget.classList.contains('dropzone')) {
+        if (dropTarget.dataset.match === item.id) {
+          dropTarget.appendChild(item);
+          dropTarget.classList.add('matched');
+          item.setAttribute('draggable', false);
+          checkWin();
+        } else {
+          alert('Incorrect match! Try again.');
+        }
+      }
+    };
+
+    document.addEventListener('touchmove', onTouchMove, { passive: false });
+    document.addEventListener('touchend', onTouchEnd, { passive: false });
+  }
+</script>
+
+</body>
+</html>
