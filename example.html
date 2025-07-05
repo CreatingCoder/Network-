@@ -1,0 +1,135 @@
+<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Signers of the U.S. Constitution</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f4;
+      color: #333;
+    }
+    header {
+      background-color: #002147;
+      color: #fff;
+      padding: 20px;
+      text-align: center;
+    }
+    main {
+      padding: 20px;
+    }
+    .filter {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .filter input {
+      padding: 10px;
+      width: 80%;
+      max-width: 400px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    .grid {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 20px;
+    }
+    .card {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      padding: 16px;
+      width: 300px;
+      transition: transform 0.2s;
+    }
+    .card:hover {
+      transform: scale(1.03);
+    }
+    .card h2 {
+      margin-top: 0;
+    }
+    .card a {
+      color: #0066cc;
+      text-decoration: none;
+    }
+    .map {
+      margin-top: 10px;
+    }
+    iframe {
+      width: 100%;
+      height: 200px;
+      border: 0;
+      border-radius: 8px;
+    }
+    @media (max-width: 600px) {
+      .card {
+        width: 100%;
+      }
+    }
+  </style>
+  <script>
+    function filterSigners() {
+      const input = document.getElementById("filterInput").value.toLowerCase();
+      const cards = document.querySelectorAll(".card");
+      cards.forEach(card => {
+        const name = card.querySelector("h2").innerText.toLowerCase();
+        card.style.display = name.includes(input) ? "block" : "none";
+      });
+    }
+  </script>
+</head>
+<body>
+  <header>
+    <h1>Signers of the U.S. Constitution</h1>
+    <p>Explore historic sites and homes of the 39 signers</p>
+  </header>
+  <main>
+    <div class="filter">
+      <input type="text" id="filterInput" oninput="filterSigners()" placeholder="Search by name...">
+    </div>
+    <div class="grid">
+      <!-- Cards for all 39 signers -->
+      <!-- This sample lists a few; for the full list, please refer to the assistant to generate a separate JSON or long-form HTML section -->
+      <div class="card"><h2>George Washington</h2><p>Mount Vernon, VA</p><a href="https://www.mountvernon.org/" target="_blank">Visit Site</a><div class="map"><iframe src="https://maps.google.com/maps?q=Mount%20Vernon%20VA&t=&z=13&ie=UTF8&iwloc=&output=embed"></iframe></div></div>
+      <div class="card"><h2>Benjamin Franklin</h2><p>Franklin Court, Philadelphia, PA</p><a href="https://www.nps.gov/inde/learn/historyculture/franklin-court.htm" target="_blank">Visit Site</a><div class="map"><iframe src="https://maps.google.com/maps?q=Franklin%20Court%20Philadelphia%20PA&t=&z=13&ie=UTF8&iwloc=&output=embed"></iframe></div></div>
+      <div class="card"><h2>Alexander Hamilton</h2><p>Hamilton Grange, New York, NY</p><a href="https://www.nps.gov/hagr/" target="_blank">Visit Site</a><div class="map"><iframe src="https://maps.google.com/maps?q=Hamilton%20Grange%20NY&t=&z=13&ie=UTF8&iwloc=&output=embed"></iframe></div></div>
+      <div class="card"><h2>James Madison</h2><p>Montpelier, VA</p><a href="https://www.montpelier.org/" target="_blank">Visit Site</a><div class="map"><iframe src="https://maps.google.com/maps?q=Montpelier%20VA&t=&z=13&ie=UTF8&iwloc=&output=embed"></iframe></div></div>
+      <div class="card"><h2>James Wilson</h2><p>Independence Hall, Philadelphia, PA</p><a href="https://www.nps.gov/inde/planyourvisit/independencehall.htm" target="_blank">Visit Site</a><div class="map"><iframe src="https://maps.google.com/maps?q=Independence%20Hall%20Philadelphia%20PA&t=&z=13&ie=UTF8&iwloc=&output=embed"></iframe></div></div>
+      <div class="card"><h2>William Blount</h2><p>Blount Mansion, Knoxville, TN</p><a href="https://blountmansion.org/" target="_blank">Visit Site</a><div class="map"><iframe src="https://maps.google.com/maps?q=Blount%20Mansion%20Knoxville%20TN&t=&z=13&ie=UTF8&iwloc=&output=embed"></iframe></div></div>
+<div class="card"><h2>Richard Dobbs Spaight</h2><p>New Bern, NC</p><a href="https://www.tryonpalace.org/" target="_blank">Visit Site</a><div class="map"><iframe src="https://maps.google.com/maps?q=New%20Bern%20NC&t=&z=13&ie=UTF8&iwloc=&output=embed"></iframe></div></div>
+<div class="card"><h2>Hugh Williamson</h2><p>Edenton, NC</p><a href="https://historicsites.nc.gov/all-sites/edenton-historic-site" target="_blank">Visit Site</a><div class="map"><iframe src="https://maps.google.com/maps?q=Edenton%20NC&t=&z=13&ie=UTF8&iwloc=&output=embed"></iframe></div></div>
+<div class="card"><h2>William Few</h2><p>Augusta, GA</p><a href="https://visitaugusta.com/" target="_blank">Visit Site</a><div class="map"><iframe src="https://maps.google.com/maps?q=Augusta%20GA&t=&z=13&ie=UTF8&iwloc=&output=embed"></iframe></div></div>
+<div class="card"><h2>Abraham Baldwin</h2><p>Savannah, GA</p><a href="https://www.georgiahistory.com/" target="_blank">Visit Site</a><div class="map"><iframe src="https://maps.google.com/maps?q=Savannah%20GA&t=&z=13&ie=UTF8&iwloc=&output=embed"></iframe></div></div>
+<div class="card"><h2>William Livingston</h2><p>Liberty Hall, Union, NJ</p><a href="https://libertyhall.kean.edu/" target="_blank">Visit Site</a><div class="map"><iframe src="https://maps.google.com/maps?q=Liberty%20Hall%20Union%20NJ&t=&z=13&ie=UTF8&iwloc=&output=embed"></iframe></div></div>
+<div class="card"><h2>David Brearley</h2><p>Trenton, NJ</p><a href="https://www.trentonhistory.org/" target="_blank">Visit Site</a><div class="map"><iframe src="https://maps.google.com/maps?q=Trenton%20NJ&t=&z=13&ie=UTF8&iwloc=&output=embed"></iframe></div></div>
+<div class="card"><h2>William Paterson</h2><p>William Paterson University, NJ</p><a href="https://www.wpunj.edu/" target="_blank">Visit Site</a><div class="map"><iframe src="https://maps.google.com/maps?q=Wayne%20NJ&t=&z=13&ie=UTF8&iwloc=&output=embed"></iframe></div></div>
+<div class="card"><h2>Jonathan Dayton</h2><p>Elizabethtown, NJ</p><a href="https://www.elizabethnj.org/" target="_blank">Visit Site</a><div class="map"><iframe src="https://maps.google.com/maps?q=Elizabeth%20NJ&t=&z=13&ie=UTF8&iwloc=&output=embed"></iframe></div></div>
+<div class="card"><h2>Gunning Bedford Jr.</h2><p>Wilmington, DE</p><a href="https://www.visitwilmingtonde.com/" target="_blank">Visit Site</a><div class="map"><iframe src="https://maps.google.com/maps?q=Wilmington%20DE&t=&z=13&ie=UTF8&iwloc=&output=embed"></iframe></div></div>
+<div class="card"><h2>George Read</h2><p>New Castle, DE</p><a href="https://newcastlehistory.org/" target="_blank">Visit Site</a><div class="map"><iframe src="https://maps.google.com/maps?q=New%20Castle%20DE&t=&z=13&ie=UTF8&iwloc=&output=embed"></iframe></div></div>
+<div class="card"><h2>John Dickinson</h2><p>Dover, DE</p><a href="https://history.delaware.gov/john-dickinson-plantation/" target="_blank">Visit Site</a><div class="map"><iframe src="https://maps.google.com/maps?q=Dover%20DE&t=&z=13&ie=UTF8&iwloc=&output=embed"></iframe></div></div>
+<div class="card"><h2>Thomas McKean</h2><p>Dover, DE</p><a href="https://history.delaware.gov/" target="_blank">Visit Site</a><div class="map"><iframe src="https://maps.google.com/maps?q=Dover%20DE&t=&z=13&ie=UTF8&iwloc=&output=embed"></iframe></div></div>
+<div class="card"><h2>John Langdon</h2><p>Portsmouth, NH</p><a href="https://www.nh.gov/nhdhr/langdonhouse.html" target="_blank">Visit Site</a><div class="map"><iframe src="https://maps.google.com/maps?q=Portsmouth%20NH&t=&z=13&ie=UTF8&iwloc=&output=embed"></iframe></div></div>
+<div class="card"><h2>Nicholas Gilman</h2><p>Exeter, NH</p><a href="https://www.exeterhistory.org/" target="_blank">Visit Site</a><div class="map"><iframe src="https://maps.google.com/maps?q=Exeter%20NH&t=&z=13&ie=UTF8&iwloc=&output=embed"></iframe></div></div>
+<div class="card"><h2>Nathaniel Gorham</h2><p>Charlestown, MA</p><a href="https://www.boston.gov/neighborhood/charlestown" target="_blank">Visit Site</a><div class="map"><iframe src="https://maps.google.com/maps?q=Charlestown%20MA&t=&z=13&ie=UTF8&iwloc=&output=embed"></iframe></div></div>
+<div class="card"><h2>Rufus King</h2><p>Jamaica, Queens, NY</p><a href="https://www.nycgovparks.org/parks/king-manor-museum" target="_blank">Visit Site</a><div class="map"><iframe src="https://maps.google.com/maps?q=Jamaica%20Queens%20NY&t=&z=13&ie=UTF8&iwloc=&output=embed"></iframe></div></div>
+<div class="card"><h2>William Samuel Johnson</h2><p>Stratford, CT</p><a href="https://www.stratfordhistoricalsociety.org/" target="_blank">Visit Site</a><div class="map"><iframe src="https://maps.google.com/maps?q=Stratford%20CT&t=&z=13&ie=UTF8&iwloc=&output=embed"></iframe></div></div>
+<div class="card"><h2>Roger Sherman</h2><p>New Haven, CT</p><a href="https://www.newhavenmuseum.org/" target="_blank">Visit Site</a><div class="map"><iframe src="https://maps.google.com/maps?q=New%20Haven%20CT&t=&z=13&ie=UTF8&iwloc=&output=embed"></iframe></div></div>
+<div class="card"><h2>Oliver Ellsworth</h2><p>Windsor, CT</p><a href="https://ctexplored.org/ellisworth-homestead/" target="_blank">Visit Site</a><div class="map"><iframe src="https://maps.google.com/maps?q=Windsor%20CT&t=&z=13&ie=UTF8&iwloc=&output=embed"></iframe></div></div>
+<div class="card"><h2>George Clymer</h2><p>Morrisville, PA</p><a href="https://www.phmc.pa.gov/" target="_blank">Visit Site</a><div class="map"><iframe src="https://maps.google.com/maps?q=Morrisville%20PA&t=&z=13&ie=UTF8&iwloc=&output=embed"></iframe></div></div>
+<div class="card"><h2>Thomas Fitzsimons</h2><p>Philadelphia, PA</p><a href="https://www.visitphilly.com/" target="_blank">Visit Site</a><div class="map"><iframe src="https://maps.google.com/maps?q=Philadelphia%20PA&t=&z=13&ie=UTF8&iwloc=&output=embed"></iframe></div></div>
+<div class="card"><h2>Jared Ingersoll</h2><p>Philadelphia, PA</p><a href="https://www.nps.gov/inde/index.htm" target="_blank">Visit Site</a><div class="map"><iframe src="https://maps.google.com/maps?q=Philadelphia%20PA&t=&z=13&ie=UTF8&iwloc=&output=embed"></iframe></div></div>
+<div class="card"><h2>Gouverneur Morris</h2><p>Bronx, NY</p><a href="https://www.bronxhistoricalsociety.org/" target="_blank">Visit Site</a><div class="map"><iframe src="https://maps.google.com/maps?q=Bronx%20NY&t=&z=13&ie=UTF8&iwloc=&output=embed"></iframe></div></div>
+<div class="card"><h2>Robert Morris</h2><p>Philadelphia, PA</p><a href="https://www.nps.gov/inde/index.htm" target="_blank">Visit Site</a><div class="map"><iframe src="https://maps.google.com/maps?q=Philadelphia%20PA&t=&z=13&ie=UTF8&iwloc=&output=embed"></iframe></div></div>
+<div class="card"><h2>George Wythe</h2><p>Williamsburg, VA</p><a href="https://www.colonialwilliamsburg.org/" target="_blank">Visit Site</a><div class="map"><iframe src="https://maps.google.com/maps?q=Williamsburg%20VA&t=&z=13&ie=UTF8&iwloc=&output=embed"></iframe></div></div>
+<div class="card"><h2>John Blair</h2><p>Williamsburg, VA</p><a href="https://www.colonialwilliamsburg.org/" target="_blank">Visit Site</a><div class="map"><iframe src="https://maps.google.com/maps?q=Williamsburg%20VA&t=&z=13&ie=UTF8&iwloc=&output=embed"></iframe></div></div>
+<div class="card"><h2>Charles Cotesworth Pinckney</h2><p>Charleston, SC</p><a href="https://www.ccpcharleston.org/" target="_blank">Visit Site</a><div class="map"><iframe src="https://maps.google.com/maps?q=Charleston%20SC&t=&z=13&ie=UTF8&iwloc=&output=embed"></iframe></div></div>
+<div class="card"><h2>Charles Pinckney</h2><p>Charleston, SC</p><a href="https://www.nps.gov/chpi/" target="_blank">Visit Site</a><div class="map"><iframe src="https://maps.google.com/maps?q=Charleston%20SC&t=&z=13&ie=UTF8&iwloc=&output=embed"></iframe></div></div>
+<div class="card"><h2>Pierce Butler</h2><p>Charleston, SC</p><a href="https://www.ccpcharleston.org/" target="_blank">Visit Site</a><div class="map"><iframe src="https://maps.google.com/maps?q=Charleston%20SC&t=&z=13&ie=UTF8&iwloc=&output=embed"></iframe></div></div>
+<!-- End of full signer list -->
+    </div>
+  </main>
+</body>
+</html>
