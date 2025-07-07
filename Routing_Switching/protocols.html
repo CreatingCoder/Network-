@@ -201,8 +201,11 @@
     clone.classList.add("dragging");
     document.body.appendChild(clone);
 
+    const offsetX = clone.offsetWidth / 2;
+    const offsetY = clone.offsetHeight / 2;
+
     const moveAt = (touch) => {
-      clone.style.transform = `translate(${touch.pageX}px, ${touch.pageY}px)`;
+      clone.style.transform = `translate(${touch.pageX - offsetX}px, ${touch.pageY - offsetY}px)`;
     };
 
     moveAt(touch);
