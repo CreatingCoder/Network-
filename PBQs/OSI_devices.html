@@ -11,7 +11,7 @@
       background: #121212;
       color: #f0f0f0;
       font-family: 'Segoe UI', sans-serif;
-      touch-action: manipulation;
+      touch-action: none;
       overflow-x: hidden;
     }
 
@@ -48,7 +48,6 @@
 
     .draggable, .dropzone {
       width: 100%;
-      height: auto;
       min-height: 90px;
       border-radius: 10px;
       display: flex;
@@ -99,14 +98,13 @@
       position: fixed;
       pointer-events: none;
       z-index: 9999;
-      opacity: 0.9;
+      opacity: 0.85;
       background-color: #263238;
       color: white;
       border: 2px solid #00acc1;
       border-radius: 10px;
       padding: 10px 16px;
       font-size: 14px;
-      max-width: 80%;
       text-align: center;
     }
 
@@ -213,14 +211,21 @@
       e.preventDefault();
       const original = e.currentTarget;
       const touch = e.touches[0];
+      const rect = original.getBoundingClientRect();
 
       const clone = original.cloneNode(true);
       clone.classList.add("dragging-clone");
+      clone.id = "clone-" + original.id;
+      clone.style.width = `${rect.width}px`;
+      clone.style.height = `${rect.height}px`;
+      clone.style.left = `${touch.pageX - rect.width / 2}px`;
+      clone.style.top = `${touch.pageY - rect.height / 2}px`;
+
       document.body.appendChild(clone);
 
       const moveAt = touch => {
-        clone.style.left = `${touch.pageX - clone.offsetWidth / 2}px`;
-        clone.style.top = `${touch.pageY - clone.offsetHeight / 2}px`;
+        clone.style.left = `${touch.pageX - rect.width / 2}px`;
+        clone.style.top = `${touch.pageY - rect.height / 2}px`;
       };
 
       moveAt(touch);
@@ -246,7 +251,7 @@
 
     function handleMatch(draggedId, dropTarget) {
       const draggedEl = document.getElementById(draggedId);
-      const draggedText = draggedEl?.textContent;
+      const draggedText = draggedEl.textContent;
       const dropTargetText = dropTarget.textContent;
 
       const match = items.find(item => item.answer === draggedText && item.question === dropTargetText);
