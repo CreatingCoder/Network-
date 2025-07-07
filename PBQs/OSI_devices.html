@@ -2,23 +2,18 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-  <title>OSI Layer Matching Game - Network+ Devices</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Cloud Types Matching Game</title>
   <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      background: #121212;
-      color: #f0f0f0;
-      font-family: 'Segoe UI', sans-serif;
-      touch-action: none;
-      overflow-x: hidden;
-    }
-
     body {
+      font-family: 'Segoe UI', sans-serif;
       text-align: center;
       padding: 20px;
+      margin: 0;
+      background: #121212;
+      color: #f0f0f0;
       min-height: 100vh;
+      overflow-y: auto; /* Enable vertical scroll on mobile */
     }
 
     h1 {
@@ -29,6 +24,7 @@
     p {
       color: #ccc;
       margin-bottom: 20px;
+      font-size: 1rem;
     }
 
     .game-container {
@@ -43,7 +39,7 @@
       grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
       gap: 16px;
       width: 100%;
-      max-width: 900px;
+      max-width: 1000px;
     }
 
     .draggable, .dropzone {
@@ -54,10 +50,10 @@
       align-items: center;
       justify-content: center;
       font-weight: bold;
-      padding: 12px;
+      padding: 10px;
       box-sizing: border-box;
       text-align: center;
-      line-height: 1.2;
+      transition: background-color 0.3s, border-color 0.3s;
     }
 
     .draggable {
@@ -66,7 +62,7 @@
       color: #ffffff;
       cursor: grab;
       user-select: none;
-      touch-action: none;
+      touch-action: manipulation; /* Allow scrolling and tapping */
     }
 
     .dropzone {
@@ -89,7 +85,7 @@
 
     .message {
       margin-top: 30px;
-      font-size: 20px;
+      font-size: 1.2rem;
       font-weight: bold;
       color: #00e676;
     }
@@ -103,37 +99,23 @@
       color: white;
       border: 2px solid #00acc1;
       border-radius: 10px;
-      padding: 10px 16px;
       font-size: 14px;
       text-align: center;
+      padding: 10px;
+      transform: translate(-50%, -50%);
     }
 
     @media (max-width: 600px) {
-      h1 {
-        font-size: 1.3rem;
-      }
-
       .draggable, .dropzone {
-        font-size: 0.75rem;
-        padding: 10px;
-        min-height: 70px;
-      }
-
-      .dragging-clone {
-        font-size: 0.75rem;
-        padding: 8px 12px;
-        max-width: 60%;
-      }
-
-      .grid {
-        gap: 12px;
+        font-size: 0.9rem;
+        padding: 14px;
       }
     }
   </style>
 </head>
 <body>
-  <h1>Network+ OSI Layer Matching Game</h1>
-  <p>Drag the device to the OSI layer it operates on</p>
+  <h1>Cloud Types Matching Game</h1>
+  <p>Match each real-world example to the correct cloud model</p>
 
   <div class="game-container">
     <div class="grid" id="questionsGrid"></div>
@@ -144,14 +126,14 @@
 
   <script>
     const items = [
-      { id: "d1", question: "Layer 3 (Network)", answer: "Router" },
-      { id: "d2", question: "Layer 2 (Data Link)", answer: "Switch" },
-      { id: "d3", question: "Layer 1 (Physical)", answer: "Hub" },
-      { id: "d4", question: "Layer 4 (Transport)", answer: "Firewall" },
-      { id: "d5", question: "Layer 2 (Data Link)", answer: "Access Point" },
-      { id: "d6", question: "Layer 1 (Physical)", answer: "Modem" },
-      { id: "d7", question: "Layer 1 (Physical)", answer: "Repeater" },
-      { id: "d8", question: "Layer 2 (Data Link)", answer: "Bridge" }
+      { id: "c1", question: "Using Microsoft 365 or Google Workspace in a browser", answer: "SaaS" },
+      { id: "c2", question: "Developers use Heroku or Google App Engine to build apps", answer: "PaaS" },
+      { id: "c3", question: "Renting virtual machines from AWS EC2 or Azure VM", answer: "IaaS" },
+      { id: "c4", question: "Company sets up its own cloud data center only accessible internally", answer: "Private Cloud" },
+      { id: "c5", question: "Dropbox or Gmail available to the general public", answer: "Public Cloud" },
+      { id: "c6", question: "Using both AWS and in-house servers together", answer: "Hybrid Cloud" },
+      { id: "c7", question: "Universities sharing cloud resources for joint research", answer: "Community Cloud" },
+      { id: "c8", question: "Cloud provider manages VPN and network routing for your company", answer: "NaaS" }
     ];
 
     let matches = 0;
@@ -204,6 +186,9 @@
           const draggedId = e.dataTransfer.getData("text/plain");
           handleMatch(draggedId, drop);
         });
+
+        drop.addEventListener("touchstart", e => e.preventDefault(), { passive: false });
+        drop.addEventListener("touchmove", e => e.preventDefault(), { passive: false });
       });
     }
 
@@ -215,17 +200,13 @@
 
       const clone = original.cloneNode(true);
       clone.classList.add("dragging-clone");
-      clone.id = "clone-" + original.id;
       clone.style.width = `${rect.width}px`;
       clone.style.height = `${rect.height}px`;
-      clone.style.left = `${touch.pageX - rect.width / 2}px`;
-      clone.style.top = `${touch.pageY - rect.height / 2}px`;
-
       document.body.appendChild(clone);
 
       const moveAt = touch => {
-        clone.style.left = `${touch.pageX - rect.width / 2}px`;
-        clone.style.top = `${touch.pageY - rect.height / 2}px`;
+        clone.style.left = `${touch.clientX}px`;
+        clone.style.top = `${touch.clientY}px`;
       };
 
       moveAt(touch);
@@ -251,7 +232,7 @@
 
     function handleMatch(draggedId, dropTarget) {
       const draggedEl = document.getElementById(draggedId);
-      const draggedText = draggedEl.textContent;
+      const draggedText = draggedEl?.textContent;
       const dropTargetText = dropTarget.textContent;
 
       const match = items.find(item => item.answer === draggedText && item.question === dropTargetText);
@@ -260,11 +241,13 @@
 
       if (match) {
         dropTarget.innerHTML = "";
+        draggedEl.removeAttribute("draggable");
+        draggedEl.style.cursor = "default";
         dropTarget.appendChild(draggedEl);
         dropTarget.classList.add("correct");
         matches++;
         if (matches === total) {
-          document.getElementById("message").textContent = "✅ All matched correctly!";
+          document.getElementById("message").textContent = "✅ All matched correctly! Cloud mastery unlocked!";
         }
       } else {
         alert("❌ Incorrect. Try again.");
