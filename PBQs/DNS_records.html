@@ -8,71 +8,70 @@
     html, body {
       margin: 0;
       padding: 0;
+      font-family: 'Segoe UI', sans-serif;
       background: #121212;
       color: #f0f0f0;
-      font-family: 'Segoe UI', sans-serif;
-      touch-action: none;
+      touch-action: manipulation;
     }
 
     body {
       text-align: center;
       padding: 20px;
-      min-height: 100vh;
     }
 
     h1 {
       color: #00e6e6;
-      font-size: 1.8rem;
+      font-size: 1.6rem;
     }
 
     p {
       color: #ccc;
-      margin-bottom: 20px;
+      margin-bottom: 16px;
+      font-size: 1rem;
     }
 
     .game-container {
       display: flex;
       flex-direction: column;
+      gap: 30px;
       align-items: center;
-      gap: 40px;
     }
 
     .grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-      gap: 16px;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
       width: 100%;
-      max-width: 900px;
+      max-width: 960px;
     }
 
     .draggable, .dropzone {
-      width: 100%;
-      min-height: 90px;
+      min-height: 80px;
+      background-color: #263238;
       border-radius: 10px;
+      padding: 10px;
+      font-weight: bold;
+      font-size: 0.95rem;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-weight: bold;
-      padding: 12px;
-      box-sizing: border-box;
       text-align: center;
+      box-sizing: border-box;
       line-height: 1.2;
     }
 
     .draggable {
       border: 2px solid #00acc1;
-      background-color: #263238;
-      color: #ffffff;
+      color: #fff;
       cursor: grab;
-      user-select: none;
       touch-action: none;
+      user-select: none;
     }
 
     .dropzone {
       border: 2px dashed #607d8b;
       background-color: #1e1e1e;
-      user-select: none;
-      position: relative;
+      color: #f0f0f0;
     }
 
     .dropzone:hover {
@@ -81,43 +80,45 @@
     }
 
     .correct {
-      background-color: #2e7d32 !important;
-      border-color: #81c784 !important;
+      background-color: #2e7d32;
+      border-color: #81c784;
       color: #ffffff;
     }
 
     .message {
-      margin-top: 30px;
-      font-size: 20px;
+      font-size: 1.1rem;
       font-weight: bold;
       color: #00e676;
+      margin-top: 20px;
     }
 
     .dragging-clone {
       position: fixed;
       pointer-events: none;
-      z-index: 9999;
+      z-index: 1000;
       opacity: 0.85;
       background-color: #263238;
-      color: white;
       border: 2px solid #00acc1;
       border-radius: 10px;
-      padding: 10px 16px;
-      font-size: 14px;
-      max-width: 80%;
+      color: white;
+      padding: 10px 14px;
+      font-size: 0.9rem;
       text-align: center;
+      max-width: 80%;
     }
 
-    @media (max-width: 600px) {
+    @media (max-width: 500px) {
       .draggable, .dropzone {
         font-size: 0.85rem;
+        min-height: 70px;
+        padding: 8px;
       }
     }
   </style>
 </head>
 <body>
   <h1>DNS Record Matching Game</h1>
-  <p>Match each DNS record type to its definition</p>
+  <p>Drag each DNS record type to its correct definition</p>
 
   <div class="game-container">
     <div class="grid" id="questionsGrid"></div>
@@ -171,11 +172,13 @@
         div.className = "draggable";
         div.id = item.id;
 
+        // Mouse drag
         div.setAttribute("draggable", "true");
         div.addEventListener("dragstart", e => {
           e.dataTransfer.setData("text/plain", item.id);
         });
 
+        // Touch drag
         div.addEventListener("touchstart", handleTouchStart, { passive: false });
 
         answersGrid.appendChild(div);
@@ -193,19 +196,19 @@
 
     function handleTouchStart(e) {
       e.preventDefault();
-      const original = e.currentTarget;
+      const box = e.currentTarget;
       const touch = e.touches[0];
 
-      const clone = original.cloneNode(true);
+      const clone = box.cloneNode(true);
       clone.classList.add("dragging-clone");
-      clone.style.left = `${touch.pageX}px`;
-      clone.style.top = `${touch.pageY}px`;
       document.body.appendChild(clone);
 
       const moveAt = touch => {
-        clone.style.left = `${touch.pageX - clone.offsetWidth / 2}px`;
-        clone.style.top = `${touch.pageY - clone.offsetHeight / 2}px`;
+        clone.style.left = touch.pageX - clone.offsetWidth / 2 + "px";
+        clone.style.top = touch.pageY - clone.offsetHeight / 2 + "px";
       };
+
+      moveAt(touch);
 
       const onTouchMove = e => moveAt(e.touches[0]);
 
@@ -214,11 +217,10 @@
         document.removeEventListener("touchend", onTouchEnd);
         clone.remove();
 
-        const endTouch = e.changedTouches[0];
-        const target = document.elementFromPoint(endTouch.clientX, endTouch.clientY);
-
-        if (target && target.classList.contains("dropzone")) {
-          handleMatch(original.id, target);
+        const touch = e.changedTouches[0];
+        const dropTarget = document.elementFromPoint(touch.clientX, touch.clientY);
+        if (dropTarget && dropTarget.classList.contains("dropzone")) {
+          handleMatch(box.id, dropTarget);
         }
       };
 
@@ -228,8 +230,8 @@
 
     function handleMatch(draggedId, dropTarget) {
       const draggedEl = document.getElementById(draggedId);
-      const draggedText = draggedEl.textContent;
-      const dropTargetText = dropTarget.textContent;
+      const draggedText = draggedEl?.textContent;
+      const dropTargetText = dropTarget?.textContent;
 
       const match = items.find(item => item.answer === draggedText && item.question === dropTargetText);
 
