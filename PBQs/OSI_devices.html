@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>OSI Layer Matching Game - Network+ Devices</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      text-align: center;
+      padding: 30px;
+      margin: 0;
+      background: #121212;
+      color: #f0f0f0;
+      min-height: 100vh;
+    }
+
+    h1 {
+      color: #00e6e6;
+    }
+
+    p {
+      color: #ccc;
+    }
+
+    .game-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 60px;
+      margin-top: 40px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, 220px);
+      grid-template-rows: repeat(2, 100px);
+      gap: 20px;
+    }
+
+    .draggable {
+      width: 200px;
+      height: 90px;
+      border: 2px solid #00acc1;
+      border-radius: 10px;
+      background-color: #263238;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      padding: 10px;
+      cursor: grab;
+      user-select: none;
+    }
+
+    .dropzone {
+      width: 200px;
+      height: 90px;
+      border: 2px dashed #607d8b;
+      border-radius: 10px;
+      background-color: #1e1e1e;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px;
+      font-weight: bold;
+      text-align: center;
+      user-select: none;
+      position: relative;
+    }
+
+    .dropzone:hover {
+      background-color: #2c2c2c;
+      border-color: #00e6e6;
+    }
+
+    .correct {
+      background-color: #2e7d32;
+      border-color: #81c784;
+      color: #ffffff;
+    }
+
+    .message {
+      margin-top: 30px;
+      font-size: 24px;
+      font-weight: bold;
+      color: #00e676;
+    }
+  </style>
+</head>
+<body>
+  <h1>Network+ OSI Layer Matching Game</h1>
+  <p>Drag the device to the OSI layer it operates on</p>
+
+  <div class="game-container">
+    <div class="grid" id="questionsGrid"></div>
+    <div class="grid" id="answersGrid"></div>
+  </div>
+
+  <div class="message" id="message"></div>
+
+  <script>
+    const items = [
+      { id: "d1", question: "Layer 3 (Network)", answer: "Router" },
+      { id: "d2", question: "Layer 2 (Data Link)", answer: "Switch" },
+      { id: "d3", question: "Layer 1 (Physical)", answer: "Hub" },
+      { id: "d4", question: "Layer 4 (Transport)", answer: "Firewall" },
+      { id: "d5", question: "Layer 2 (Data Link)", answer: "Access Point" },
+      { id: "d6", question: "Layer 1 (Physical)", answer: "Modem" },
+      { id: "d7", question: "Layer 1 (Physical)", answer: "Repeater" },
+      { id: "d8", question: "Layer 2 (Data Link)", answer: "Bridge" }
+    ];
+
+    let matches = 0;
+    const total = items.length;
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+    }
+
+    function renderGame() {
+      const questionsGrid = document.getElementById("questionsGrid");
+      const answersGrid = document.getElementById("answersGrid");
+
+      const shuffledQuestions = [...items];
+      const shuffledAnswers = [...items];
+
+      shuffle(shuffledQuestions);
+      shuffle(shuffledAnswers);
+
+      shuffledQuestions.forEach(item => {
+        const div = document.createElement("div");
+        div.textContent = item.question;
+        div.className = "dropzone";
+        questionsGrid.appendChild(div);
+      });
+
+      shuffledAnswers.forEach(item => {
+        const div = document.createElement("div");
+        div.textContent = item.answer;
+        div.className = "draggable";
+        div.id = item.id;
+
+        div.setAttribute("draggable", "true");
+        div.addEventListener("dragstart", e => {
+          e.dataTransfer.setData("text/plain", item.id);
+        });
+
+        answersGrid.appendChild(div);
+      });
+
+      document.querySelectorAll(".dropzone").forEach(drop => {
+        drop.addEventListener("dragover", e => e.preventDefault());
+        drop.addEventListener("drop", e => {
+          e.preventDefault();
+          const draggedId = e.dataTransfer.getData("text/plain");
+          handleMatch(draggedId, drop);
+        });
+      });
+    }
+
+    function handleMatch(draggedId, dropTarget) {
+      const draggedEl = document.getElementById(draggedId);
+      const draggedText = draggedEl.textContent;
+      const dropTargetText = dropTarget.textContent;
+
+      const match = items.find(item => item.answer === draggedText && item.question === dropTargetText);
+
+      if (dropTarget.classList.contains("correct") || !draggedEl) return;
+
+      if (match) {
+        dropTarget.innerHTML = "";
+        dropTarget.appendChild(draggedEl);
+        dropTarget.classList.add("correct");
+        matches++;
+        if (matches === total) {
+          document.getElementById("message").textContent = "✅ All matched correctly!";
+        }
+      } else {
+        alert("❌ Incorrect. Try again.");
+      }
+    }
+
+    renderGame();
+  </script>
+</body>
+</html>
