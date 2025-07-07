@@ -46,12 +46,13 @@
       justify-content: center;
       user-select: none;
       transition: background-color 0.3s;
+      flex-wrap: wrap;
     }
 
     .dropzone {
       background-color: #263238;
       cursor: default;
-      position: relative;
+      flex-direction: column;
     }
 
     .matched {
@@ -155,7 +156,6 @@
         }
 
         zone.appendChild(box);
-        zone.classList.add('matched');
         box.setAttribute('draggable', false);
         checkWin();
       });
@@ -175,12 +175,10 @@
   function handleMatch(draggedId, dropTarget) {
     const expectedType = dropTarget.dataset.type;
     const draggedEl = document.querySelector(`.box[data-id="${draggedId}"]`);
-
-    if (!draggedEl || dropTarget.classList.contains("matched")) return;
+    if (!draggedEl) return;
 
     if (draggedEl.dataset.type === expectedType) {
       dropTarget.appendChild(draggedEl);
-      dropTarget.classList.add("matched");
       draggedEl.setAttribute("draggable", false);
       checkWin();
     } else {
