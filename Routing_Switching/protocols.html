@@ -106,8 +106,6 @@
   const zoneContainer = document.getElementById('dropzones');
   const result = document.getElementById('result');
 
-  const originalPositions = {};
-
   function shuffle(array) {
     for (let i = array.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
@@ -134,14 +132,13 @@
       div.addEventListener('touchstart', handleTouchStart, { passive: false });
 
       protocolContainer.appendChild(div);
-      originalPositions[item.id] = protocolContainer;
     });
 
     zoneTypes.forEach(type => {
       const zone = document.createElement('div');
       zone.className = 'dropzone';
       zone.dataset.type = type;
-      zone.textContent = type;
+      zone.innerHTML = `<strong>${type}</strong>`;
 
       zone.addEventListener('dragover', e => e.preventDefault());
       zone.addEventListener('drop', e => {
@@ -168,7 +165,6 @@
     element.classList.add('flash-red');
     setTimeout(() => {
       element.classList.remove('flash-red');
-      originalPositions[element.dataset.id].appendChild(element);
     }, 500);
   }
 
