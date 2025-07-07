@@ -198,14 +198,20 @@
       e.preventDefault();
       const box = e.currentTarget;
       const touch = e.touches[0];
+      const rect = box.getBoundingClientRect();
 
       const clone = box.cloneNode(true);
       clone.classList.add("dragging-clone");
+      clone.style.width = `${rect.width}px`;
+      clone.style.height = `${rect.height}px`;
+      clone.style.left = `${touch.clientX - rect.width / 2}px`;
+      clone.style.top = `${touch.clientY - rect.height / 2}px`;
+
       document.body.appendChild(clone);
 
       const moveAt = touch => {
-        clone.style.left = touch.pageX - clone.offsetWidth / 2 + "px";
-        clone.style.top = touch.pageY - clone.offsetHeight / 2 + "px";
+        clone.style.left = `${touch.clientX - rect.width / 2}px`;
+        clone.style.top = `${touch.clientY - rect.height / 2}px`;
       };
 
       moveAt(touch);
