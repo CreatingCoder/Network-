@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Routing Protocols Matching Game</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #121212;
+      color: #f0f0f0;
+      text-align: center;
+      padding: 20px;
+      margin: 0;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    h1 {
+      color: #00e6e6;
+      font-size: 2rem;
+      margin-bottom: 10px;
+    }
+
+    .game-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 40px;
+      max-width: 1000px;
+      margin: auto;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 16px;
+      width: 100%;
+    }
+
+    .box, .target {
+      background-color: #1e1e1e;
+      padding: 12px;
+      border-radius: 8px;
+      border: 2px dashed #607d8b;
+      min-height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.95rem;
+      touch-action: none;
+    }
+
+    .box {
+      cursor: grab;
+      background-color: #263238;
+      border: 2px solid #607d8b;
+    }
+
+    .target.correct {
+      border-color: #00c853;
+    }
+
+    .target.incorrect {
+      animation: flashRed 0.5s;
+    }
+
+    @keyframes flashRed {
+      0% { background-color: #ff1744; }
+      100% { background-color: #1e1e1e; }
+    }
+  </style>
+</head>
+<body>
+  <h1>Match the Routing Protocols to Their Descriptions</h1>
+  <div class="game-container">
+    <div class="grid" id="questions"></div>
+    <div class="grid" id="answers"></div>
+  </div>
+
+  <script>
+    const pairs = [
+      ["OSPF", "Link-State Protocol that uses Dijkstra's algorithm"],
+      ["RIP", "Distance-Vector Protocol with a hop limit of 15"],
+      ["EIGRP", "Cisco proprietary Hybrid Protocol with fast convergence"],
+      ["BGP", "Path-Vector Protocol used between autonomous systems"],
+      ["IS-IS", "Link-State Protocol similar to OSPF but uses CLNP format"]
+    ];
+
+    const shuffle = arr => arr.map(x => [Math.random(), x]).sort().map(x => x[1]);
+    const shuffledPairs = shuffle([...pairs]);
+    const questions = document.getElementById("questions");
+    const answers = document.getElementById("answers");
+
+    shuffledPairs.forEach(([protocol]) => {
+      const slot = document.createElement("div");
+      slot.className = "target";
+      slot.dataset.answer = protocol;
+      slot.textContent = protocol;
+      slot.ondragover = e => e.preventDefault();
+      slot.ondrop = function(e) {
+        e.preventDefault();
+        const dragged = document.getElementById(e.dataTransfer.getData("text"));
+        if (dragged.dataset.protocol === this.dataset.answer) {
+          this.classList.remove("incorrect");
+          this.classList.add("correct");
+          this.textContent += " ✓";
+          dragged.remove();
+        } else {
+          this.classList.remove("correct");
+          this.classList.add("incorrect");
+        }
+      };
+      questions.appendChild(slot);
+    });
+
+    shuffle([...pairs]).forEach(([protocol, description]) => {
+      const option = document.createElement("div");
+      option.className = "box";
+      option.draggable = true;
+      option.dataset.protocol = protocol;
+      option.id = `desc-${protocol}`;
+      option.textContent = description;
+
+      option.ondragstart = function(e) {
+        e.dataTransfer.setData("text", e.target.id);
+      };
+
+      answers.appendChild(option);
+    });
+  </script>
+</body>
+</html>
