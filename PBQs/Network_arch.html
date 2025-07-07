@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Network Topology Matching Game</title>
+  <style>
+    body {
+      background-color: #121212;
+      color: #f0f0f0;
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      text-align: center;
+    }
+
+    h1 {
+      color: #00e6e6;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    .slot, .drag-item {
+      border: 2px dashed #607d8b;
+      border-radius: 5px;
+      padding: 15px;
+      min-height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      background-color: #263238;
+      color: #ccc;
+      text-align: center;
+    }
+
+    .slot.correct {
+      background-color: #2e7d32;
+      border-color: #81c784;
+      color: #fff;
+    }
+
+    .slot.wrong {
+      background-color: #c62828;
+      border-color: #ef5350;
+    }
+
+    .drag-item {
+      background-color: #00acc1;
+      border: 2px solid #00bcd4;
+      cursor: grab;
+      margin: 5px;
+      color: black;
+      touch-action: none;
+    }
+
+    .draggable-area {
+      margin-top: 40px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .message {
+      font-size: 20px;
+      color: #00e676;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Compare & Contrast: Network Topologies & Architectures</h1>
+  <p>Drag each term to its correct definition</p>
+
+  <div class="grid" id="dropzones">
+    <div class="slot" data-label="Star Topology">Central node with spokes</div>
+    <div class="slot" data-label="Mesh Topology">Each device connected to many others</div>
+    <div class="slot" data-label="Bus Topology">Single backbone cable shared by devices</div>
+    <div class="slot" data-label="Ring Topology">Data travels in circular fashion</div>
+    <div class="slot" data-label="Client-Server">Clients request services from a central server</div>
+    <div class="slot" data-label="Peer-to-Peer">Each device acts as both client and server</div>
+    <div class="slot" data-label="LAN">Covers a local area like an office</div>
+    <div class="slot" data-label="WAN">Connects devices across wide geographic areas</div>
+  </div>
+
+  <div class="draggable-area" id="draggables"></div>
+  <div class="message" id="message"></div>
+
+  <script>
+    const labels = [
+      "Star Topology",
+      "Mesh Topology",
+      "Bus Topology",
+      "Ring Topology",
+      "Client-Server",
+      "Peer-to-Peer",
+      "LAN",
+      "WAN"
+    ];
+
+    const draggablesContainer = document.getElementById("draggables");
+    const dropzones = document.querySelectorAll(".slot");
+    let correctCount = 0;
+    const total = labels.length;
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+    }
+
+    function setupDraggables() {
+      const shuffled = [...labels];
+      shuffle(shuffled);
+
+      shuffled.forEach(label => {
+        const item = document.createElement("div");
+        item.className = "drag-item";
+        item.textContent = label;
+        item.id = label.replace(/\s+/g, '-').toLowerCase();
+        item.draggable = true;
+
+        // Desktop drag
+        item.addEventListener("dragstart", e => {
+          e.dataTransfer.setData("text/plain", label);
+        });
+
+        // Mobile touch support
+        item.addEventListener("touchstart", handleTouchStart, { passive: false });
+
+        draggablesContainer.appendChild(item);
+      });
+    }
+
+    function setupDropzones() {
+      dropzones.forEach(zone => {
+        zone.addEventListener("dragover", e => e.preventDefault());
+        zone.addEventListener("drop", e => {
+          e.preventDefault();
+          const draggedLabel = e.dataTransfer.getData("text/plain");
+          handleDrop(zone, draggedLabel);
+        });
+      });
+    }
+
+    function handleDrop(zone, draggedLabel) {
+      if (!zone.classList.contains("correct") && zone.childElementCount === 1) return;
+
+      if (zone.dataset.label === draggedLabel) {
+        const dragEl = document.getElementById(draggedLabel.replace(/\s+/g, '-').toLowerCase());
+        zone.appendChild(dragEl);
+        zone.classList.add("correct");
+        correctCount++;
+        if (correctCount === total) {
+          document.getElementById("message").textContent = "✅ All matched correctly! Great job!";
+        }
+      } else {
+        zone.classList.add("wrong");
+        setTimeout(() => zone.classList.remove("wrong"), 500);
+      }
+    }
+
+    function handleTouchStart(e) {
+      e.preventDefault();
+      const item = e.target;
+      const clone = item.cloneNode(true);
+      clone.style.position = "absolute";
+      clone.style.zIndex = 1000;
+      clone.style.pointerEvents = "none";
+      clone.classList.add("dragging");
+      document.body.appendChild(clone);
+
+      const move = touch => {
+        clone.style.left = touch.pageX - clone.offsetWidth / 2 + "px";
+        clone.style.top = touch.pageY - clone.offsetHeight / 2 + "px";
+      };
+
+      move(e.touches[0]);
+
+      const onTouchMove = e => move(e.touches[0]);
+      const onTouchEnd = e => {
+        document.removeEventListener("touchmove", onTouchMove);
+        document.removeEventListener("touchend", onTouchEnd);
+        clone.remove();
+
+        const touch = e.changedTouches[0];
+        const dropTarget = document.elementFromPoint(touch.clientX, touch.clientY);
+
+        if (dropTarget && dropTarget.classList.contains("slot")) {
+          handleDrop(dropTarget, item.textContent);
+        }
+      };
+
+      document.addEventListener("touchmove", onTouchMove, { passive: false });
+      document.addEventListener("touchend", onTouchEnd, { passive: false });
+    }
+
+    setupDraggables();
+    setupDropzones();
+  </script>
+</body>
+</html>
