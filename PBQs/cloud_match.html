@@ -60,12 +60,14 @@
       color: #ffffff;
       cursor: grab;
       user-select: none;
+      touch-action: none;
     }
 
     .dropzone {
       border: 2px dashed #607d8b;
       background-color: #1e1e1e;
       user-select: none;
+      position: relative;
     }
 
     .dropzone:hover {
@@ -84,6 +86,18 @@
       font-size: 1.2rem;
       font-weight: bold;
       color: #00e676;
+    }
+
+    .dragging-clone {
+      position: absolute;
+      pointer-events: none;
+      z-index: 9999;
+      opacity: 0.7;
+      padding: 10px;
+      background-color: #263238;
+      color: white;
+      border: 2px solid #00acc1;
+      border-radius: 10px;
     }
 
     @media (max-width: 600px) {
@@ -150,10 +164,14 @@
         div.className = "draggable";
         div.id = item.id;
 
+        // Desktop drag
         div.setAttribute("draggable", "true");
         div.addEventListener("dragstart", e => {
           e.dataTransfer.setData("text/plain", item.id);
         });
+
+        // Touch support
+        div.addEventListener("touchstart", handleTouchStart, { passive: false });
 
         answersGrid.appendChild(div);
       });
@@ -166,6 +184,42 @@
           handleMatch(draggedId, drop);
         });
       });
+    }
+
+    function handleTouchStart(e) {
+      e.preventDefault();
+      const target = e.target;
+      const touch = e.touches[0];
+      const clone = target.cloneNode(true);
+      clone.classList.add("dragging-clone");
+      document.body.appendChild(clone);
+
+      const moveAt = (touch) => {
+        clone.style.left = touch.pageX - clone.offsetWidth / 2 + "px";
+        clone.style.top = touch.pageY - clone.offsetHeight / 2 + "px";
+      };
+
+      moveAt(touch);
+
+      const onTouchMove = e => {
+        moveAt(e.touches[0]);
+      };
+
+      const onTouchEnd = e => {
+        document.removeEventListener("touchmove", onTouchMove);
+        document.removeEventListener("touchend", onTouchEnd);
+        clone.remove();
+
+        const touchEnd = e.changedTouches[0];
+        const dropTarget = document.elementFromPoint(touchEnd.clientX, touchEnd.clientY);
+
+        if (dropTarget && dropTarget.classList.contains("dropzone")) {
+          handleMatch(target.id, dropTarget);
+        }
+      };
+
+      document.addEventListener("touchmove", onTouchMove, { passive: false });
+      document.addEventListener("touchend", onTouchEnd, { passive: false });
     }
 
     function handleMatch(draggedId, dropTarget) {
