@@ -43,6 +43,7 @@
       text-align: center;
       padding: 5px;
       min-height: 50px;
+      position: relative;
     }
 
     .slot.correct {
@@ -67,6 +68,7 @@
       user-select: none;
       color: #000;
       touch-action: none;
+      position: relative;
     }
 
     .draggable-area {
@@ -85,19 +87,7 @@
 
     @media (max-width: 768px) {
       .header-grid {
-        display: grid;
         grid-template-columns: repeat(4, 1fr);
-        overflow-x: auto;
-      }
-
-      .slot {
-        font-size: 12px;
-        padding: 3px;
-      }
-
-      .drag-item {
-        font-size: 12px;
-        padding: 8px;
       }
     }
   </style>
@@ -162,13 +152,86 @@
         const div = document.createElement("div");
         div.className = "drag-item";
         div.textContent = label;
-        div.draggable = true;
+        div.setAttribute("draggable", "true");
         div.id = label.replace(/\s+/g, '-').toLowerCase();
+
+        // Desktop
         div.addEventListener("dragstart", e => {
           e.dataTransfer.setData("text/plain", label);
         });
+
+        // Mobile Touch
+        div.addEventListener("touchstart", handleTouchStart, { passive: false });
+        div.addEventListener("touchmove", handleTouchMove, { passive: false });
+        div.addEventListener("touchend", handleTouchEnd);
+
         draggablesContainer.appendChild(div);
       });
+    }
+
+    let draggedItem = null;
+    let touchOffsetX = 0;
+    let touchOffsetY = 0;
+
+    function handleTouchStart(e) {
+      draggedItem = e.target;
+      const touch = e.touches[0];
+      const rect = draggedItem.getBoundingClientRect();
+      touchOffsetX = touch.clientX - rect.left;
+      touchOffsetY = touch.clientY - rect.top;
+      draggedItem.style.position = "absolute";
+      draggedItem.style.zIndex = 1000;
+    }
+
+    function handleTouchMove(e) {
+      if (!draggedItem) return;
+      const touch = e.touches[0];
+      draggedItem.style.left = (touch.clientX - touchOffsetX) + "px";
+      draggedItem.style.top = (touch.clientY - touchOffsetY + window.scrollY) + "px";
+    }
+
+    function handleTouchEnd(e) {
+      if (!draggedItem) return;
+      draggedItem.style.zIndex = "";
+
+      let dropped = false;
+      gridSlots.forEach(slot => {
+        const slotRect = slot.getBoundingClientRect();
+        const dragRect = draggedItem.getBoundingClientRect();
+        if (
+          dragRect.left < slotRect.right &&
+          dragRect.right > slotRect.left &&
+          dragRect.top < slotRect.bottom &&
+          dragRect.bottom > slotRect.top
+        ) {
+          if (!slot.classList.contains("correct") && slot.childElementCount === 0) {
+            const label = draggedItem.textContent;
+            if (slot.dataset.label === label) {
+              slot.appendChild(draggedItem);
+              draggedItem.style.position = "relative";
+              draggedItem.style.left = "";
+              draggedItem.style.top = "";
+              slot.classList.add("correct");
+              correctCount++;
+              dropped = true;
+              if (correctCount === total) {
+                document.getElementById("message").textContent = "✅ Well done! IPv4 header structure complete.";
+              }
+            } else {
+              slot.classList.add("wrong");
+              setTimeout(() => slot.classList.remove("wrong"), 500);
+            }
+          }
+        }
+      });
+
+      if (!dropped) {
+        draggedItem.style.position = "relative";
+        draggedItem.style.left = "";
+        draggedItem.style.top = "";
+      }
+
+      draggedItem = null;
     }
 
     function setupDropZones() {
