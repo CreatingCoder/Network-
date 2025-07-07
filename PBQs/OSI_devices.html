@@ -11,19 +11,13 @@
       background: #121212;
       color: #f0f0f0;
       font-family: 'Segoe UI', sans-serif;
-      touch-action: none;
       overflow-x: hidden;
-    }
-
-    body {
-      text-align: center;
-      padding: 20px;
-      min-height: 100vh;
     }
 
     h1 {
       color: #00e6e6;
       font-size: 1.8rem;
+      margin-top: 20px;
     }
 
     p {
@@ -35,30 +29,31 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 40px;
+      gap: 30px;
+      padding: 16px;
     }
 
     .grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-      gap: 16px;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 14px;
       width: 100%;
       max-width: 900px;
     }
 
     .draggable, .dropzone {
       width: 100%;
-      height: auto;
-      min-height: 90px;
+      min-height: 80px;
       border-radius: 10px;
       display: flex;
       align-items: center;
       justify-content: center;
       font-weight: bold;
-      padding: 12px;
+      padding: 10px;
       box-sizing: border-box;
       text-align: center;
-      line-height: 1.2;
+      line-height: 1.3;
+      word-break: break-word;
     }
 
     .draggable {
@@ -74,7 +69,6 @@
       border: 2px dashed #607d8b;
       background-color: #1e1e1e;
       user-select: none;
-      position: relative;
     }
 
     .dropzone:hover {
@@ -89,8 +83,8 @@
     }
 
     .message {
-      margin-top: 30px;
-      font-size: 20px;
+      margin-top: 20px;
+      font-size: 1.2rem;
       font-weight: bold;
       color: #00e676;
     }
@@ -99,7 +93,7 @@
       position: fixed;
       pointer-events: none;
       z-index: 9999;
-      opacity: 0.85;
+      opacity: 0.9;
       background-color: #263238;
       color: white;
       border: 2px solid #00acc1;
@@ -109,24 +103,17 @@
       max-width: 80%;
       text-align: center;
     }
-
-    @media (max-width: 600px) {
-      .draggable, .dropzone {
-        font-size: 0.85rem;
-      }
-    }
   </style>
 </head>
 <body>
   <h1>Network+ OSI Layer Matching Game</h1>
-  <p>Drag the device to the OSI layer it operates on</p>
+  <p>Drag each device to the OSI layer it operates on</p>
 
   <div class="game-container">
     <div class="grid" id="questionsGrid"></div>
     <div class="grid" id="answersGrid"></div>
+    <div class="message" id="message"></div>
   </div>
-
-  <div class="message" id="message"></div>
 
   <script>
     const items = [
@@ -173,11 +160,13 @@
         div.className = "draggable";
         div.id = item.id;
 
+        // Drag events (desktop)
         div.setAttribute("draggable", "true");
         div.addEventListener("dragstart", e => {
           e.dataTransfer.setData("text/plain", item.id);
         });
 
+        // Touch events (mobile)
         div.addEventListener("touchstart", handleTouchStart, { passive: false });
 
         answersGrid.appendChild(div);
@@ -201,8 +190,6 @@
       const clone = original.cloneNode(true);
       clone.classList.add("dragging-clone");
       clone.id = "clone-" + original.id;
-      clone.style.left = `${touch.pageX}px`;
-      clone.style.top = `${touch.pageY}px`;
       document.body.appendChild(clone);
 
       const moveAt = touch => {
