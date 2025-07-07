@@ -13,7 +13,7 @@
       background: #121212;
       color: #f0f0f0;
       min-height: 100vh;
-      overflow-y: auto; /* Enable vertical scroll on mobile */
+      overflow-y: auto;
     }
 
     h1 {
@@ -62,7 +62,7 @@
       color: #ffffff;
       cursor: grab;
       user-select: none;
-      touch-action: manipulation; /* Allow scrolling and tapping */
+      touch-action: manipulation;
     }
 
     .dropzone {
@@ -105,6 +105,15 @@
       transform: translate(-50%, -50%);
     }
 
+    @keyframes flashRed {
+      0%   { background-color: #ff4444; }
+      100% { background-color: #1e1e1e; }
+    }
+
+    .incorrect {
+      animation: flashRed 0.4s ease;
+    }
+
     @media (max-width: 600px) {
       .draggable, .dropzone {
         font-size: 0.9rem;
@@ -138,6 +147,7 @@
 
     let matches = 0;
     const total = items.length;
+    const originalParents = {};
 
     function shuffle(array) {
       for (let i = array.length - 1; i > 0; i--) {
@@ -170,6 +180,8 @@
         div.id = item.id;
 
         div.setAttribute("draggable", "true");
+        originalParents[item.id] = answersGrid;
+
         div.addEventListener("dragstart", e => {
           e.dataTransfer.setData("text/plain", item.id);
         });
@@ -250,7 +262,15 @@
           document.getElementById("message").textContent = "✅ All matched correctly! Cloud mastery unlocked!";
         }
       } else {
-        alert("❌ Incorrect. Try again.");
+        // Flash red on dropzone
+        dropTarget.classList.add("incorrect");
+        setTimeout(() => dropTarget.classList.remove("incorrect"), 400);
+
+        // Bounce back dragged element
+        const parent = originalParents[draggedId];
+        if (parent && !parent.contains(draggedEl)) {
+          parent.appendChild(draggedEl);
+        }
       }
     }
 
