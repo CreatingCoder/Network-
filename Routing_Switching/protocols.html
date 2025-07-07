@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Network+ Routing Protocol Type Quiz</title>
+  <title>Routing Protocol Matching</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -14,15 +14,14 @@
     }
 
     h1 {
-      margin-bottom: 10px;
       color: #00e6e6;
     }
 
     .container {
       display: flex;
       justify-content: center;
-      gap: 60px;
       flex-wrap: wrap;
+      gap: 60px;
     }
 
     .column {
@@ -53,17 +52,13 @@
       background-color: #263238;
       cursor: default;
       flex-direction: column;
+      align-items: center;
     }
 
-    .matched {
-      background-color: #388e3c !important;
-    }
-
-    .dragging {
-      opacity: 0.5;
-      position: absolute;
-      z-index: 1000;
-      pointer-events: none;
+    .title {
+      margin-bottom: 5px;
+      font-size: 16px;
+      color: #4fc3f7;
     }
 
     .flash-red {
@@ -138,23 +133,27 @@
       const zone = document.createElement('div');
       zone.className = 'dropzone';
       zone.dataset.type = type;
-      zone.innerHTML = `<strong>${type}</strong>`;
+
+      const title = document.createElement('div');
+      title.className = 'title';
+      title.textContent = type;
+      zone.appendChild(title);
 
       zone.addEventListener('dragover', e => e.preventDefault());
+
       zone.addEventListener('drop', e => {
         e.preventDefault();
         const id = e.dataTransfer.getData('text/plain');
         const box = document.querySelector(`.box[data-id="${id}"]`);
-        if (!box) return;
+        if (!box || box.draggable === "false") return;
 
-        if (box.dataset.type !== zone.dataset.type) {
+        if (box.dataset.type === zone.dataset.type) {
+          zone.appendChild(box);
+          box.setAttribute('draggable', false);
+          checkWin();
+        } else {
           flashRed(box);
-          return;
         }
-
-        zone.appendChild(box);
-        box.setAttribute('draggable', false);
-        checkWin();
       });
 
       zoneContainer.appendChild(zone);
@@ -171,7 +170,7 @@
   function handleMatch(draggedId, dropTarget) {
     const expectedType = dropTarget.dataset.type;
     const draggedEl = document.querySelector(`.box[data-id="${draggedId}"]`);
-    if (!draggedEl) return;
+    if (!draggedEl || draggedEl.draggable === "false") return;
 
     if (draggedEl.dataset.type === expectedType) {
       dropTarget.appendChild(draggedEl);
@@ -187,6 +186,8 @@
     const box = e.currentTarget;
     const clone = box.cloneNode(true);
     clone.classList.add("dragging");
+    clone.style.position = "absolute";
+    clone.style.zIndex = 1000;
     document.body.appendChild(clone);
 
     const moveAt = (touch) => {
