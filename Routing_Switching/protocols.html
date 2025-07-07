@@ -11,6 +11,7 @@
       color: #f0f0f0;
       padding: 20px;
       text-align: center;
+      margin: 0;
     }
 
     h1 {
@@ -28,10 +29,13 @@
       display: flex;
       flex-direction: column;
       gap: 15px;
+      flex: 1;
+      min-width: 280px;
+      max-width: 100%;
     }
 
     .box, .dropzone {
-      width: 270px;
+      width: 100%;
       min-height: 60px;
       padding: 10px;
       box-sizing: border-box;
@@ -47,6 +51,7 @@
       transition: background-color 0.3s;
       flex-wrap: wrap;
       touch-action: none;
+      word-wrap: break-word;
     }
 
     .dropzone {
@@ -62,6 +67,11 @@
 
     .flash-red {
       background-color: #b71c1c !important;
+    }
+
+    .correct {
+      background-color: #2e7d32 !important;
+      border-color: #66bb6a;
     }
 
     .dragging {
@@ -156,6 +166,7 @@
         if (box.dataset.type === dropzone.dataset.type) {
           dropzone.appendChild(box);
           box.setAttribute("draggable", false);
+          box.classList.add("correct");
           checkWin();
         } else {
           flashRed(box);
@@ -167,6 +178,7 @@
   }
 
   function flashRed(el) {
+    el.classList.remove("correct");
     el.classList.add("flash-red");
     setTimeout(() => el.classList.remove("flash-red"), 500);
   }
@@ -202,6 +214,7 @@
         if (box.dataset.type === dropzone.dataset.type) {
           dropzone.appendChild(box);
           box.setAttribute("draggable", false);
+          box.classList.add("correct");
           checkWin();
         } else {
           flashRed(box);
