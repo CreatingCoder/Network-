@@ -100,6 +100,7 @@
       font-size: 14px;
       text-align: center;
       padding: 10px;
+      transform: translate(-50%, -50%);
     }
 
     @media (max-width: 600px) {
@@ -196,14 +197,14 @@
       clone.classList.add("dragging-clone");
       clone.style.width = `${rect.width}px`;
       clone.style.height = `${rect.height}px`;
-      clone.style.left = `${touch.pageX - rect.width / 2}px`;
-      clone.style.top = `${touch.pageY - rect.height / 2}px`;
+      clone.style.left = `${touch.clientX}px`;
+      clone.style.top = `${touch.clientY}px`;
 
       document.body.appendChild(clone);
 
       const moveAt = touch => {
-        clone.style.left = `${touch.pageX - rect.width / 2}px`;
-        clone.style.top = `${touch.pageY - rect.height / 2}px`;
+        clone.style.left = `${touch.clientX}px`;
+        clone.style.top = `${touch.clientY}px`;
       };
 
       moveAt(touch);
