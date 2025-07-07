@@ -19,9 +19,9 @@
 
     .container {
       display: flex;
-      justify-content: center;
       flex-wrap: wrap;
-      gap: 60px;
+      justify-content: center;
+      gap: 40px;
     }
 
     .column {
@@ -46,13 +46,12 @@
       user-select: none;
       transition: background-color 0.3s;
       flex-wrap: wrap;
+      touch-action: none;
     }
 
     .dropzone {
       background-color: #263238;
-      cursor: default;
       flex-direction: column;
-      align-items: center;
     }
 
     .title {
@@ -63,6 +62,13 @@
 
     .flash-red {
       background-color: #b71c1c !important;
+    }
+
+    .dragging {
+      position: absolute;
+      z-index: 1000;
+      pointer-events: none;
+      opacity: 0.7;
     }
 
     #result {
@@ -87,7 +93,7 @@
 <div id="result">🎉 All correct! 🎉</div>
 
 <script>
-  const protocolData = [
+  const protocols = [
     { id: "RIP", label: "RIP", type: "Distance Vector" },
     { id: "OSPF", label: "OSPF", type: "Link State" },
     { id: "IS-IS", label: "IS-IS", type: "Link State" },
@@ -97,107 +103,92 @@
 
   const zoneTypes = ["Distance Vector", "Link State", "Path Vector"];
 
-  const protocolContainer = document.getElementById('protocols');
-  const zoneContainer = document.getElementById('dropzones');
-  const result = document.getElementById('result');
+  const protocolContainer = document.getElementById("protocols");
+  const dropzonesContainer = document.getElementById("dropzones");
+  const result = document.getElementById("result");
 
-  function shuffle(array) {
-    for (let i = array.length - 1; i > 0; i--) {
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
-      [array[i], array[j]] = [array[j], array[i]];
+      [arr[i], arr[j]] = [arr[j], arr[i]];
     }
   }
 
-  function renderQuiz() {
-    shuffle(protocolData);
+  function render() {
+    shuffle(protocols);
     shuffle(zoneTypes);
 
-    protocolData.forEach(item => {
-      const div = document.createElement('div');
-      div.className = 'box';
-      div.dataset.id = item.id;
-      div.dataset.type = item.type;
-      div.textContent = item.label;
+    protocols.forEach(item => {
+      const box = document.createElement("div");
+      box.className = "box";
+      box.textContent = item.label;
+      box.dataset.id = item.id;
+      box.dataset.type = item.type;
+      box.setAttribute("draggable", "true");
 
-      div.setAttribute('draggable', 'true');
-      div.addEventListener('dragstart', e => {
-        e.dataTransfer.setData('text/plain', item.id);
+      box.addEventListener("dragstart", e => {
+        e.dataTransfer.setData("text/plain", item.id);
       });
 
-      div.addEventListener('touchstart', handleTouchStart, { passive: false });
+      box.addEventListener("touchstart", handleTouchStart, { passive: false });
 
-      protocolContainer.appendChild(div);
+      protocolContainer.appendChild(box);
     });
 
     zoneTypes.forEach(type => {
-      const zone = document.createElement('div');
-      zone.className = 'dropzone';
-      zone.dataset.type = type;
+      const dropzone = document.createElement("div");
+      dropzone.className = "dropzone";
+      dropzone.dataset.type = type;
 
-      const title = document.createElement('div');
-      title.className = 'title';
+      const title = document.createElement("div");
+      title.className = "title";
       title.textContent = type;
-      zone.appendChild(title);
+      dropzone.appendChild(title);
 
-      zone.addEventListener('dragover', e => e.preventDefault());
+      dropzone.addEventListener("dragover", e => e.preventDefault());
 
-      zone.addEventListener('drop', e => {
+      dropzone.addEventListener("drop", e => {
         e.preventDefault();
-        const id = e.dataTransfer.getData('text/plain');
+        const id = e.dataTransfer.getData("text/plain");
         const box = document.querySelector(`.box[data-id="${id}"]`);
         if (!box || box.draggable === "false") return;
 
-        if (box.dataset.type === zone.dataset.type) {
-          zone.appendChild(box);
-          box.setAttribute('draggable', false);
+        if (box.dataset.type === dropzone.dataset.type) {
+          dropzone.appendChild(box);
+          box.setAttribute("draggable", false);
           checkWin();
         } else {
           flashRed(box);
         }
       });
 
-      zoneContainer.appendChild(zone);
+      dropzonesContainer.appendChild(dropzone);
     });
   }
 
-  function flashRed(element) {
-    element.classList.add('flash-red');
-    setTimeout(() => {
-      element.classList.remove('flash-red');
-    }, 500);
-  }
-
-  function handleMatch(draggedId, dropTarget) {
-    const expectedType = dropTarget.dataset.type;
-    const draggedEl = document.querySelector(`.box[data-id="${draggedId}"]`);
-    if (!draggedEl || draggedEl.draggable === "false") return;
-
-    if (draggedEl.dataset.type === expectedType) {
-      dropTarget.appendChild(draggedEl);
-      draggedEl.setAttribute("draggable", false);
-      checkWin();
-    } else {
-      flashRed(draggedEl);
-    }
+  function flashRed(el) {
+    el.classList.add("flash-red");
+    setTimeout(() => el.classList.remove("flash-red"), 500);
   }
 
   function handleTouchStart(e) {
     e.preventDefault();
     const box = e.currentTarget;
+    const touch = e.touches[0];
+
     const clone = box.cloneNode(true);
     clone.classList.add("dragging");
-    clone.style.position = "absolute";
-    clone.style.zIndex = 1000;
+    clone.style.left = `${touch.pageX - 135}px`;
+    clone.style.top = `${touch.pageY - 30}px`;
     document.body.appendChild(clone);
 
     const moveAt = (touch) => {
-      clone.style.left = touch.pageX - 135 + "px";
-      clone.style.top = touch.pageY - 30 + "px";
+      clone.style.left = `${touch.pageX - 135}px`;
+      clone.style.top = `${touch.pageY - 30}px`;
     };
 
-    moveAt(e.touches[0]);
-
     const onTouchMove = e => moveAt(e.touches[0]);
+
     const onTouchEnd = e => {
       document.removeEventListener("touchmove", onTouchMove);
       document.removeEventListener("touchend", onTouchEnd);
@@ -205,8 +196,16 @@
 
       const touch = e.changedTouches[0];
       const dropTarget = document.elementFromPoint(touch.clientX, touch.clientY);
-      if (dropTarget && dropTarget.classList.contains("dropzone")) {
-        handleMatch(box.dataset.id, dropTarget);
+
+      if (dropTarget && dropTarget.closest(".dropzone")) {
+        const dropzone = dropTarget.closest(".dropzone");
+        if (box.dataset.type === dropzone.dataset.type) {
+          dropzone.appendChild(box);
+          box.setAttribute("draggable", false);
+          checkWin();
+        } else {
+          flashRed(box);
+        }
       }
     };
 
@@ -216,12 +215,12 @@
 
   function checkWin() {
     const matched = document.querySelectorAll('.box[draggable="false"]').length;
-    if (matched === protocolData.length) {
+    if (matched === protocols.length) {
       result.style.display = 'block';
     }
   }
 
-  renderQuiz();
+  render();
 </script>
 
 </body>
