@@ -45,6 +45,7 @@
       align-items: center;
       justify-content: center;
       user-select: none;
+      transition: background-color 0.3s;
     }
 
     .dropzone {
@@ -62,6 +63,10 @@
       position: absolute;
       z-index: 1000;
       pointer-events: none;
+    }
+
+    .flash-red {
+      background-color: #b71c1c !important;
     }
 
     #result {
@@ -100,6 +105,8 @@
   const zoneContainer = document.getElementById('dropzones');
   const result = document.getElementById('result');
 
+  const originalPositions = {};
+
   function shuffle(array) {
     for (let i = array.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
@@ -126,6 +133,7 @@
       div.addEventListener('touchstart', handleTouchStart, { passive: false });
 
       protocolContainer.appendChild(div);
+      originalPositions[item.id] = protocolContainer;
     });
 
     zoneTypes.forEach(type => {
@@ -139,10 +147,13 @@
         e.preventDefault();
         const id = e.dataTransfer.getData('text/plain');
         const box = document.querySelector(`.box[data-id="${id}"]`);
-        if (!box || box.dataset.type !== zone.dataset.type) {
-          alert('Incorrect. Try again.');
+        if (!box) return;
+
+        if (box.dataset.type !== zone.dataset.type) {
+          flashRed(box);
           return;
         }
+
         zone.appendChild(box);
         zone.classList.add('matched');
         box.setAttribute('draggable', false);
@@ -151,6 +162,14 @@
 
       zoneContainer.appendChild(zone);
     });
+  }
+
+  function flashRed(element) {
+    element.classList.add('flash-red');
+    setTimeout(() => {
+      element.classList.remove('flash-red');
+      originalPositions[element.dataset.id].appendChild(element);
+    }, 500);
   }
 
   function handleMatch(draggedId, dropTarget) {
@@ -165,7 +184,7 @@
       draggedEl.setAttribute("draggable", false);
       checkWin();
     } else {
-      alert("❌ Incorrect. Try again.");
+      flashRed(draggedEl);
     }
   }
 
