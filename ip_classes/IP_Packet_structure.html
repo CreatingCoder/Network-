@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IPv4 Header Drag-and-Drop</title>
+  <style>
+    body {
+      background-color: #121212;
+      color: #f0f0f0;
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      text-align: center;
+    }
+
+    h1 {
+      color: #00e6e6;
+    }
+
+    .header-grid {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      grid-auto-rows: 60px;
+      gap: 5px;
+      max-width: 1000px;
+      margin: 20px auto;
+      background-color: #1e1e1e;
+      padding: 20px;
+      border-radius: 10px;
+    }
+
+    .slot {
+      background-color: #263238;
+      border: 2px dashed #607d8b;
+      border-radius: 5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      color: #ccc;
+      text-align: center;
+      padding: 5px;
+    }
+
+    .slot.correct {
+      background-color: #2e7d32;
+      border-color: #81c784;
+      color: white;
+    }
+
+    .slot.wrong {
+      background-color: #c62828 !important;
+      border-color: #ef5350 !important;
+    }
+
+    .drag-item {
+      background-color: #00acc1;
+      padding: 10px;
+      margin: 5px;
+      border-radius: 5px;
+      cursor: grab;
+      display: inline-block;
+      font-weight: bold;
+      user-select: none;
+      color: #000;
+    }
+
+    .draggable-area {
+      margin-top: 30px;
+    }
+
+    .message {
+      font-size: 20px;
+      color: #00e676;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>IPv4 Header Drag-and-Drop</h1>
+  <p>Match each label to its correct position in the IPv4 header structure</p>
+
+  <div class="header-grid" id="headerGrid">
+    <!-- Row 1: Version (1), Length (1), Service Type (2), Packet Length (4) -->
+    <div class="slot" style="grid-column: span 1" data-label="Version"></div>
+    <div class="slot" style="grid-column: span 1" data-label="Length"></div>
+    <div class="slot" style="grid-column: span 2" data-label="Service Type"></div>
+    <div class="slot" style="grid-column: span 4" data-label="Packet Length"></div>
+
+    <!-- Row 2: Identification (2), DF (1), MF (1), Fragment Offset (4) -->
+    <div class="slot" style="grid-column: span 2" data-label="Identification"></div>
+    <div class="slot" style="grid-column: span 1" data-label="DF"></div>
+    <div class="slot" style="grid-column: span 1" data-label="MF"></div>
+    <div class="slot" style="grid-column: span 4" data-label="Fragment Offset"></div>
+
+    <!-- Row 3: TTL (2), Protocol (2), Header Checksum (4) -->
+    <div class="slot" style="grid-column: span 2" data-label="Time to Live"></div>
+    <div class="slot" style="grid-column: span 2" data-label="Transport"></div>
+    <div class="slot" style="grid-column: span 4" data-label="Header Checksum"></div>
+
+    <!-- Row 4: Source IP (8) -->
+    <div class="slot" style="grid-column: span 8" data-label="Source IP Address"></div>
+
+    <!-- Row 5: Destination IP (8) -->
+    <div class="slot" style="grid-column: span 8" data-label="Destination IP Address"></div>
+
+    <!-- Row 6: Options (4), Padding (4) -->
+    <div class="slot" style="grid-column: span 4" data-label="Options"></div>
+    <div class="slot" style="grid-column: span 4" data-label="Padding"></div>
+
+    <!-- Data -->
+    <div class="slot" style="grid-column: span 8; height: 100px" data-label="Data"></div>
+  </div>
+
+  <div class="draggable-area" id="draggables"></div>
+  <div class="message" id="message"></div>
+
+  <script>
+    const labels = [
+      "Version", "Length", "Service Type", "Packet Length",
+      "Identification", "DF", "MF", "Fragment Offset",
+      "Time to Live", "Transport", "Header Checksum",
+      "Source IP Address", "Destination IP Address",
+      "Options", "Padding", "Data"
+    ];
+
+    const draggablesContainer = document.getElementById("draggables");
+    const gridSlots = document.querySelectorAll(".slot");
+    const total = labels.length;
+    let correctCount = 0;
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+    }
+
+    function setupDraggables() {
+      const shuffled = [...labels];
+      shuffle(shuffled);
+
+      shuffled.forEach(label => {
+        const div = document.createElement("div");
+        div.className = "drag-item";
+        div.textContent = label;
+        div.draggable = true;
+        div.id = label.replace(/\s+/g, '-').toLowerCase();
+        div.addEventListener("dragstart", e => {
+          e.dataTransfer.setData("text/plain", label);
+        });
+        draggablesContainer.appendChild(div);
+      });
+    }
+
+    function setupDropZones() {
+      gridSlots.forEach(slot => {
+        slot.addEventListener("dragover", e => e.preventDefault());
+        slot.addEventListener("drop", e => {
+          e.preventDefault();
+          const draggedLabel = e.dataTransfer.getData("text/plain");
+          if (!slot.classList.contains("correct") && slot.childElementCount === 0) {
+            if (slot.dataset.label === draggedLabel) {
+              const dragEl = document.getElementById(draggedLabel.replace(/\s+/g, '-').toLowerCase());
+              slot.appendChild(dragEl);
+              slot.classList.add("correct");
+              correctCount++;
+
+              if (correctCount === total) {
+                document.getElementById("message").textContent = "✅ Well done! IPv4 header structure complete.";
+              }
+            } else {
+              slot.classList.add("wrong");
+              setTimeout(() => slot.classList.remove("wrong"), 500);
+            }
+          }
+        });
+      });
+    }
+
+    setupDraggables();
+    setupDropZones();
+  </script>
+</body>
+</html>
