@@ -8,7 +8,7 @@
     body {
       font-family: 'Segoe UI', sans-serif;
       text-align: center;
-      padding: 30px;
+      padding: 20px;
       margin: 0;
       background: #121212;
       color: #f0f0f0;
@@ -17,57 +17,54 @@
 
     h1 {
       color: #00e6e6;
+      font-size: 1.8rem;
     }
 
     p {
       color: #ccc;
+      margin-bottom: 20px;
     }
 
     .game-container {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 60px;
-      margin-top: 40px;
+      gap: 40px;
     }
 
     .grid {
       display: grid;
-      grid-template-columns: repeat(4, 220px);
-      grid-template-rows: repeat(2, 100px);
-      gap: 20px;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 16px;
+      width: 100%;
+      max-width: 900px;
     }
 
-    .draggable {
-      width: 200px;
+    .draggable, .dropzone {
+      width: 100%;
       height: 90px;
-      border: 2px solid #00acc1;
       border-radius: 10px;
-      background-color: #263238;
-      color: #ffffff;
       display: flex;
       align-items: center;
       justify-content: center;
       font-weight: bold;
       padding: 10px;
+      box-sizing: border-box;
+      text-align: center;
+    }
+
+    .draggable {
+      border: 2px solid #00acc1;
+      background-color: #263238;
+      color: #ffffff;
       cursor: grab;
       user-select: none;
     }
 
     .dropzone {
-      width: 200px;
-      height: 90px;
       border: 2px dashed #607d8b;
-      border-radius: 10px;
       background-color: #1e1e1e;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 10px;
-      font-weight: bold;
-      text-align: center;
       user-select: none;
-      position: relative;
     }
 
     .dropzone:hover {
@@ -76,16 +73,24 @@
     }
 
     .correct {
-      background-color: #2e7d32;
-      border-color: #81c784;
+      background-color: #2e7d32 !important;
+      border-color: #81c784 !important;
       color: #ffffff;
     }
 
     .message {
       margin-top: 30px;
-      font-size: 24px;
+      font-size: 20px;
       font-weight: bold;
       color: #00e676;
+    }
+
+    @media (max-width: 600px) {
+      .draggable, .dropzone {
+        font-size: 0.85rem;
+        height: auto;
+        padding: 16px;
+      }
     }
   </style>
 </head>
