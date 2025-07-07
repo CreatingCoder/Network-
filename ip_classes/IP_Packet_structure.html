@@ -11,6 +11,7 @@
       font-family: Arial, sans-serif;
       padding: 20px;
       text-align: center;
+      margin: 0;
     }
 
     h1 {
@@ -27,6 +28,7 @@
       background-color: #1e1e1e;
       padding: 20px;
       border-radius: 10px;
+      overflow-x: auto;
     }
 
     .slot {
@@ -40,6 +42,7 @@
       color: #ccc;
       text-align: center;
       padding: 5px;
+      min-height: 50px;
     }
 
     .slot.correct {
@@ -63,16 +66,39 @@
       font-weight: bold;
       user-select: none;
       color: #000;
+      touch-action: none;
     }
 
     .draggable-area {
       margin-top: 30px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
     }
 
     .message {
       font-size: 20px;
       color: #00e676;
       margin-top: 20px;
+    }
+
+    @media (max-width: 768px) {
+      .header-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        overflow-x: auto;
+      }
+
+      .slot {
+        font-size: 12px;
+        padding: 3px;
+      }
+
+      .drag-item {
+        font-size: 12px;
+        padding: 8px;
+      }
     }
   </style>
 </head>
@@ -81,34 +107,26 @@
   <p>Match each label to its correct position in the IPv4 header structure</p>
 
   <div class="header-grid" id="headerGrid">
-    <!-- Row 1: Version (1), Length (1), Service Type (2), Packet Length (4) -->
     <div class="slot" style="grid-column: span 1" data-label="Version"></div>
     <div class="slot" style="grid-column: span 1" data-label="Length"></div>
     <div class="slot" style="grid-column: span 2" data-label="Service Type"></div>
     <div class="slot" style="grid-column: span 4" data-label="Packet Length"></div>
 
-    <!-- Row 2: Identification (2), DF (1), MF (1), Fragment Offset (4) -->
     <div class="slot" style="grid-column: span 2" data-label="Identification"></div>
     <div class="slot" style="grid-column: span 1" data-label="DF"></div>
     <div class="slot" style="grid-column: span 1" data-label="MF"></div>
     <div class="slot" style="grid-column: span 4" data-label="Fragment Offset"></div>
 
-    <!-- Row 3: TTL (2), Protocol (2), Header Checksum (4) -->
     <div class="slot" style="grid-column: span 2" data-label="Time to Live"></div>
     <div class="slot" style="grid-column: span 2" data-label="Transport"></div>
     <div class="slot" style="grid-column: span 4" data-label="Header Checksum"></div>
 
-    <!-- Row 4: Source IP (8) -->
     <div class="slot" style="grid-column: span 8" data-label="Source IP Address"></div>
-
-    <!-- Row 5: Destination IP (8) -->
     <div class="slot" style="grid-column: span 8" data-label="Destination IP Address"></div>
 
-    <!-- Row 6: Options (4), Padding (4) -->
     <div class="slot" style="grid-column: span 4" data-label="Options"></div>
     <div class="slot" style="grid-column: span 4" data-label="Padding"></div>
 
-    <!-- Data -->
     <div class="slot" style="grid-column: span 8; height: 100px" data-label="Data"></div>
   </div>
 
