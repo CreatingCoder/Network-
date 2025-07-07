@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Cloud Types Matching Game</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      text-align: center;
+      padding: 30px;
+      margin: 0;
+      background: #121212;
+      color: #f0f0f0;
+      min-height: 100vh;
+    }
+
+    h1 {
+      color: #00e6e6;
+    }
+
+    p {
+      color: #ccc;
+    }
+
+    .game-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 60px;
+      margin-top: 40px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, 220px);
+      grid-template-rows: repeat(2, 100px);
+      gap: 20px;
+    }
+
+    .draggable {
+      width: 200px;
+      height: 90px;
+      border: 2px solid #00acc1;
+      border-radius: 10px;
+      background-color: #263238;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      padding: 10px;
+      cursor: grab;
+      user-select: none;
+    }
+
+    .dropzone {
+      width: 200px;
+      height: 90px;
+      border: 2px dashed #607d8b;
+      border-radius: 10px;
+      background-color: #1e1e1e;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px;
+      font-weight: bold;
+      text-align: center;
+      user-select: none;
+      position: relative;
+    }
+
+    .dropzone:hover {
+      background-color: #2c2c2c;
+      border-color: #00e6e6;
+    }
+
+    .correct {
+      background-color: #2e7d32;
+      border-color: #81c784;
+      color: #ffffff;
+    }
+
+    .message {
+      margin-top: 30px;
+      font-size: 24px;
+      font-weight: bold;
+      color: #00e676;
+    }
+  </style>
+</head>
+<body>
+  <h1>Cloud Types Matching Game</h1>
+  <p>Match each real-world example to the correct cloud model</p>
+
+  <div class="game-container">
+    <div class="grid" id="questionsGrid"></div>
+    <div class="grid" id="answersGrid"></div>
+  </div>
+
+  <div class="message" id="message"></div>
+
+  <script>
+    const items = [
+      { id: "c1", question: "Using Microsoft 365 or Google Workspace in a browser", answer: "SaaS" },
+      { id: "c2", question: "Developers use Heroku or Google App Engine to build apps", answer: "PaaS" },
+      { id: "c3", question: "Renting virtual machines from AWS EC2 or Azure VM", answer: "IaaS" },
+      { id: "c4", question: "Company sets up its own cloud data center only accessible internally", answer: "Private Cloud" },
+      { id: "c5", question: "Dropbox or Gmail available to the general public", answer: "Public Cloud" },
+      { id: "c6", question: "Using both AWS and in-house servers together", answer: "Hybrid Cloud" },
+      { id: "c7", question: "Universities sharing cloud resources for joint research", answer: "Community Cloud" },
+      { id: "c8", question: "Cloud provider manages VPN and network routing for your company", answer: "NaaS" }
+    ];
+
+    let matches = 0;
+    const total = items.length;
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+    }
+
+    function renderGame() {
+      const questionsGrid = document.getElementById("questionsGrid");
+      const answersGrid = document.getElementById("answersGrid");
+
+      const shuffledQuestions = [...items];
+      const shuffledAnswers = [...items];
+
+      shuffle(shuffledQuestions);
+      shuffle(shuffledAnswers);
+
+      shuffledQuestions.forEach(item => {
+        const div = document.createElement("div");
+        div.textContent = item.question;
+        div.className = "dropzone";
+        questionsGrid.appendChild(div);
+      });
+
+      shuffledAnswers.forEach(item => {
+        const div = document.createElement("div");
+        div.textContent = item.answer;
+        div.className = "draggable";
+        div.id = item.id;
+
+        div.setAttribute("draggable", "true");
+        div.addEventListener("dragstart", e => {
+          e.dataTransfer.setData("text/plain", item.id);
+        });
+
+        answersGrid.appendChild(div);
+      });
+
+      document.querySelectorAll(".dropzone").forEach(drop => {
+        drop.addEventListener("dragover", e => e.preventDefault());
+        drop.addEventListener("drop", e => {
+          e.preventDefault();
+          const draggedId = e.dataTransfer.getData("text/plain");
+          handleMatch(draggedId, drop);
+        });
+      });
+    }
+
+    function handleMatch(draggedId, dropTarget) {
+      const draggedEl = document.getElementById(draggedId);
+      const draggedText = draggedEl.textContent;
+      const dropTargetText = dropTarget.textContent;
+
+      const match = items.find(item => item.answer === draggedText && item.question === dropTargetText);
+
+      if (dropTarget.classList.contains("correct") || !draggedEl) return;
+
+      if (match) {
+        dropTarget.innerHTML = "";
+        dropTarget.appendChild(draggedEl);
+        dropTarget.classList.add("correct");
+        matches++;
+        if (matches === total) {
+          document.getElementById("message").textContent = "✅ All matched correctly! Cloud mastery unlocked!";
+        }
+      } else {
+        alert("❌ Incorrect. Try again.");
+      }
+    }
+
+    renderGame();
+  </script>
+</body>
+</html>
