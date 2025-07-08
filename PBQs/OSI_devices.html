@@ -2,18 +2,23 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Cloud Types Matching Game</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <title>OSI Layer Matching Game - Network+ Devices</title>
   <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      text-align: center;
-      padding: 20px;
+    html, body {
       margin: 0;
+      padding: 0;
       background: #121212;
       color: #f0f0f0;
+      font-family: 'Segoe UI', sans-serif;
+      touch-action: none;
+      overflow-x: hidden;
+    }
+
+    body {
+      text-align: center;
+      padding: 20px;
       min-height: 100vh;
-      overflow-y: auto;
     }
 
     h1 {
@@ -24,7 +29,6 @@
     p {
       color: #ccc;
       margin-bottom: 20px;
-      font-size: 1rem;
     }
 
     .game-container {
@@ -39,7 +43,7 @@
       grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
       gap: 16px;
       width: 100%;
-      max-width: 1000px;
+      max-width: 900px;
     }
 
     .draggable, .dropzone {
@@ -50,10 +54,10 @@
       align-items: center;
       justify-content: center;
       font-weight: bold;
-      padding: 10px;
+      padding: 12px;
       box-sizing: border-box;
       text-align: center;
-      transition: background-color 0.3s, border-color 0.3s;
+      line-height: 1.2;
     }
 
     .draggable {
@@ -62,7 +66,7 @@
       color: #ffffff;
       cursor: grab;
       user-select: none;
-      touch-action: manipulation;
+      touch-action: none;
     }
 
     .dropzone {
@@ -85,7 +89,7 @@
 
     .message {
       margin-top: 30px;
-      font-size: 1.2rem;
+      font-size: 20px;
       font-weight: bold;
       color: #00e676;
     }
@@ -99,32 +103,37 @@
       color: white;
       border: 2px solid #00acc1;
       border-radius: 10px;
+      padding: 10px 16px;
       font-size: 14px;
       text-align: center;
-      padding: 10px;
-      transform: translate(-50%, -50%);
-    }
-
-    @keyframes flashRed {
-      0%   { background-color: #ff4444; }
-      100% { background-color: #1e1e1e; }
-    }
-
-    .incorrect {
-      animation: flashRed 0.4s ease;
     }
 
     @media (max-width: 600px) {
+      h1 {
+        font-size: 1.3rem;
+      }
+
       .draggable, .dropzone {
-        font-size: 0.9rem;
-        padding: 14px;
+        font-size: 0.75rem;
+        padding: 10px;
+        min-height: 70px;
+      }
+
+      .dragging-clone {
+        font-size: 0.75rem;
+        padding: 8px 12px;
+        max-width: 60%;
+      }
+
+      .grid {
+        gap: 12px;
       }
     }
   </style>
 </head>
 <body>
-  <h1>Cloud Types Matching Game</h1>
-  <p>Match each real-world example to the correct cloud model</p>
+  <h1>Network+ OSI Layer Matching Game</h1>
+  <p>Drag the device to the OSI layer it operates on</p>
 
   <div class="game-container">
     <div class="grid" id="questionsGrid"></div>
@@ -135,19 +144,18 @@
 
   <script>
     const items = [
-      { id: "c1", question: "Using Microsoft 365 or Google Workspace in a browser", answer: "SaaS" },
-      { id: "c2", question: "Developers use Heroku or Google App Engine to build apps", answer: "PaaS" },
-      { id: "c3", question: "Renting virtual machines from AWS EC2 or Azure VM", answer: "IaaS" },
-      { id: "c4", question: "Company sets up its own cloud data center only accessible internally", answer: "Private Cloud" },
-      { id: "c5", question: "Dropbox or Gmail available to the general public", answer: "Public Cloud" },
-      { id: "c6", question: "Using both AWS and in-house servers together", answer: "Hybrid Cloud" },
-      { id: "c7", question: "Universities sharing cloud resources for joint research", answer: "Community Cloud" },
-      { id: "c8", question: "Cloud provider manages VPN and network routing for your company", answer: "NaaS" }
+      { id: "d1", question: "Layer 3 (Network)", answer: "Router" },
+      { id: "d2", question: "Layer 2 (Data Link)", answer: "Switch" },
+      { id: "d3", question: "Layer 1 (Physical)", answer: "Hub" },
+      { id: "d4", question: "Layer 4 (Transport)", answer: "Firewall" },
+      { id: "d5", question: "Layer 2 (Data Link)", answer: "Access Point" },
+      { id: "d6", question: "Layer 1 (Physical)", answer: "Modem" },
+      { id: "d7", question: "Layer 1 (Physical)", answer: "Repeater" },
+      { id: "d8", question: "Layer 2 (Data Link)", answer: "Bridge" }
     ];
 
     let matches = 0;
     const total = items.length;
-    const originalParents = {};
 
     function shuffle(array) {
       for (let i = array.length - 1; i > 0; i--) {
@@ -180,8 +188,6 @@
         div.id = item.id;
 
         div.setAttribute("draggable", "true");
-        originalParents[item.id] = answersGrid;
-
         div.addEventListener("dragstart", e => {
           e.dataTransfer.setData("text/plain", item.id);
         });
@@ -198,9 +204,6 @@
           const draggedId = e.dataTransfer.getData("text/plain");
           handleMatch(draggedId, drop);
         });
-
-        drop.addEventListener("touchstart", e => e.preventDefault(), { passive: false });
-        drop.addEventListener("touchmove", e => e.preventDefault(), { passive: false });
       });
     }
 
@@ -212,13 +215,17 @@
 
       const clone = original.cloneNode(true);
       clone.classList.add("dragging-clone");
+      clone.id = "clone-" + original.id;
       clone.style.width = `${rect.width}px`;
       clone.style.height = `${rect.height}px`;
+      clone.style.left = `${touch.pageX - rect.width / 2}px`;
+      clone.style.top = `${touch.pageY - rect.height / 2}px`;
+
       document.body.appendChild(clone);
 
       const moveAt = touch => {
-        clone.style.left = `${touch.clientX}px`;
-        clone.style.top = `${touch.clientY}px`;
+        clone.style.left = `${touch.pageX - rect.width / 2}px`;
+        clone.style.top = `${touch.pageY - rect.height / 2}px`;
       };
 
       moveAt(touch);
@@ -244,7 +251,7 @@
 
     function handleMatch(draggedId, dropTarget) {
       const draggedEl = document.getElementById(draggedId);
-      const draggedText = draggedEl?.textContent;
+      const draggedText = draggedEl.textContent;
       const dropTargetText = dropTarget.textContent;
 
       const match = items.find(item => item.answer === draggedText && item.question === dropTargetText);
@@ -253,24 +260,14 @@
 
       if (match) {
         dropTarget.innerHTML = "";
-        draggedEl.removeAttribute("draggable");
-        draggedEl.style.cursor = "default";
         dropTarget.appendChild(draggedEl);
         dropTarget.classList.add("correct");
         matches++;
         if (matches === total) {
-          document.getElementById("message").textContent = "✅ All matched correctly! Cloud mastery unlocked!";
+          document.getElementById("message").textContent = "✅ All matched correctly!";
         }
       } else {
-        // Flash red on dropzone
-        dropTarget.classList.add("incorrect");
-        setTimeout(() => dropTarget.classList.remove("incorrect"), 400);
-
-        // Bounce back dragged element
-        const parent = originalParents[draggedId];
-        if (parent && !parent.contains(draggedEl)) {
-          parent.appendChild(draggedEl);
-        }
+        alert("❌ Incorrect. Try again.");
       }
     }
 
