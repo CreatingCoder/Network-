@@ -40,7 +40,10 @@
       padding: 12px;
       border-radius: 8px;
       border: 2px dashed #607d8b;
-      min-height: 60px;
+      height: 70px;
+      min-height: 70px;
+      max-height: 70px;
+      overflow: hidden;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -112,6 +115,7 @@
       const dropzone = document.createElement("div");
       dropzone.className = "dropzone";
       dropzone.dataset.expected = expectedData;
+      dropzone.dataset.label = layer; // store label for ✓ reset
       dropzone.textContent = layer;
 
       dropzone.ondragover = e => e.preventDefault();
@@ -186,7 +190,7 @@
       if (expected === actual) {
         dropzone.classList.remove("incorrect");
         dropzone.classList.add("correct");
-        dropzone.textContent = `${dropzone.textContent} ✓`;
+        dropzone.innerHTML = `${dropzone.dataset.label} <span style="margin-left:5px;">✓</span>`;
         box.remove();
       } else {
         dropzone.classList.remove("correct");
