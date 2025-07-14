@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SNMP Quiz - Instant Feedback</title>
+  <style>
+    body {
+      background-color: #121212;
+      color: #f0f0f0;
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      max-width: 800px;
+      margin: auto;
+    }
+
+    h1 {
+      text-align: center;
+      color: #00e6e6;
+      margin-bottom: 20px;
+    }
+
+    .question {
+      background-color: #1e1e1e;
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 20px;
+    }
+
+    .question h3 {
+      margin-top: 0;
+    }
+
+    .options label {
+      display: block;
+      padding: 8px;
+      border-radius: 4px;
+      background: #2c2c2c;
+      margin: 5px 0;
+      cursor: pointer;
+    }
+
+    .options input {
+      margin-right: 10px;
+    }
+
+    .feedback {
+      margin-top: 10px;
+      font-weight: bold;
+    }
+
+    .correct {
+      color: #00ff99;
+    }
+
+    .incorrect {
+      color: #ff4c4c;
+    }
+
+    input[type="text"] {
+      width: 60px;
+      padding: 4px;
+      margin: 4px;
+      text-align: center;
+    }
+
+    .submit-btn {
+      background: #00e6e6;
+      color: #121212;
+      border: none;
+      padding: 12px 20px;
+      font-size: 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: block;
+      width: 100%;
+      margin-top: 20px;
+    }
+
+    @media (max-width: 600px) {
+      .submit-btn {
+        font-size: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>SNMP Quiz - Instant Feedback</h1>
+  <form id="quizForm">
+
+    <!-- Question Template -->
+    <div class="question" data-answer="B">
+      <h3>1. Which port does SNMP use by default for polling network devices?</h3>
+      <div class="options">
+        <label><input type="radio" name="q1" value="A"> A. 23</label>
+        <label><input type="radio" name="q1" value="B"> B. 161</label>
+        <label><input type="radio" name="q1" value="C"> C. 162</label>
+        <label><input type="radio" name="q1" value="D"> D. 443</label>
+      </div>
+      <div class="feedback" id="feedback-q1"></div>
+    </div>
+
+    <div class="question" data-answer="C">
+      <h3>2. What is the purpose of SNMP traps?</h3>
+      <div class="options">
+        <label><input type="radio" name="q2" value="A"> A. To encrypt SNMP communication</label>
+        <label><input type="radio" name="q2" value="B"> B. To initiate SNMP polling</label>
+        <label><input type="radio" name="q2" value="C"> C. To allow devices to report events to the SNMP manager</label>
+        <label><input type="radio" name="q2" value="D"> D. To query SNMP data</label>
+      </div>
+      <div class="feedback" id="feedback-q2"></div>
+    </div>
+
+    <div class="question" data-answer="D">
+      <h3>3. Which version of SNMP introduced message integrity and encryption?</h3>
+      <div class="options">
+        <label><input type="radio" name="q3" value="A"> A. SNMPv1</label>
+        <label><input type="radio" name="q3" value="B"> B. SNMPv2c</label>
+        <label><input type="radio" name="q3" value="C"> C. SNMPv2</label>
+        <label><input type="radio" name="q3" value="D"> D. SNMPv3</label>
+      </div>
+      <div class="feedback" id="feedback-q3"></div>
+    </div>
+
+    <div class="question" data-answer="C">
+      <h3>4. What is an MIB in the context of SNMP?</h3>
+      <div class="options">
+        <label><input type="radio" name="q4" value="A"> A. Managed Internet Bridge</label>
+        <label><input type="radio" name="q4" value="B"> B. Monitoring Instruction Buffer</label>
+        <label><input type="radio" name="q4" value="C"> C. Management Information Base</label>
+        <label><input type="radio" name="q4" value="D"> D. Multi-interface Block</label>
+      </div>
+      <div class="feedback" id="feedback-q4"></div>
+    </div>
+
+    <div class="question" data-answer="B">
+      <h3>5. Which of the following best describes the SNMP community string?</h3>
+      <div class="options">
+        <label><input type="radio" name="q5" value="A"> A. A type of port used for SNMPv1</label>
+        <label><input type="radio" name="q5" value="B"> B. A user-defined password for SNMPv2c</label>
+        <label><input type="radio" name="q5" value="C"> C. A network topology mapping tool</label>
+        <label><input type="radio" name="q5" value="D"> D. An IP addressing scheme</label>
+      </div>
+      <div class="feedback" id="feedback-q5"></div>
+    </div>
+
+    <div class="question" data-answer="False">
+      <h3>6. SNMPv2c supports encryption.</h3>
+      <div class="options">
+        <label><input type="radio" name="q6" value="True"> True</label>
+        <label><input type="radio" name="q6" value="False"> False</label>
+      </div>
+      <div class="feedback" id="feedback-q6"></div>
+    </div>
+
+    <div class="question" data-answer="True">
+      <h3>7. SNMP uses UDP for communication.</h3>
+      <div class="options">
+        <label><input type="radio" name="q7" value="True"> True</label>
+        <label><input type="radio" name="q7" value="False"> False</label>
+      </div>
+      <div class="feedback" id="feedback-q7"></div>
+    </div>
+
+    <div class="question" id="q8-match">
+      <h3>8. Match the SNMP term to its description:</h3>
+      <p>
+        SNMP Manager: <input type="text" id="q8a" placeholder="A/B/C"><br>
+        SNMP Agent: <input type="text" id="q8b" placeholder="A/B/C"><br>
+        MIB: <input type="text" id="q8c" placeholder="A/B/C">
+      </p>
+      <ul>
+        <li>A. Stores hierarchical info about devices</li>
+        <li>B. Sends data to the SNMP manager</li>
+        <li>C. Software that collects SNMP data</li>
+      </ul>
+      <button type="button" onclick="checkMatch()">Check Matching</button>
+      <div class="feedback" id="feedback-q8"></div>
+    </div>
+
+    <div class="question" data-answer="C">
+      <h3>9. You are setting up SNMP monitoring and need to allow devices to send asynchronous notifications of events. Which port must be open?</h3>
+      <div class="options">
+        <label><input type="radio" name="q9" value="A"> A. 80</label>
+        <label><input type="radio" name="q9" value="B"> B. 161</label>
+        <label><input type="radio" name="q9" value="C"> C. 162</label>
+        <label><input type="radio" name="q9" value="D"> D. 514</label>
+      </div>
+      <div class="feedback" id="feedback-q9"></div>
+    </div>
+
+    <div class="question" data-answer="C">
+      <h3>10. You are configuring SNMP on a switch. You want to ensure all SNMP data is encrypted. Which version should you use?</h3>
+      <div class="options">
+        <label><input type="radio" name="q10" value="A"> A. SNMPv1</label>
+        <label><input type="radio" name="q10" value="B"> B. SNMPv2c</label>
+        <label><input type="radio" name="q10" value="C"> C. SNMPv3</label>
+        <label><input type="radio" name="q10" value="D"> D. SNMPv4</label>
+      </div>
+      <div class="feedback" id="feedback-q10"></div>
+    </div>
+  </form>
+
+  <script>
+    document.querySelectorAll('input[type="radio"]').forEach(input => {
+      input.addEventListener('change', function () {
+        const questionDiv = this.closest('.question');
+        const correctAnswer = questionDiv.getAttribute('data-answer');
+        const feedback = questionDiv.querySelector('.feedback');
+        if (this.value === correctAnswer) {
+          feedback.textContent = '✅ Correct!';
+          feedback.className = 'feedback correct';
+        } else {
+          feedback.textContent = '❌ Incorrect.';
+          feedback.className = 'feedback incorrect';
+        }
+      });
+    });
+
+    function checkMatch() {
+      const a = document.getElementById("q8a").value.toUpperCase();
+      const b = document.getElementById("q8b").value.toUpperCase();
+      const c = document.getElementById("q8c").value.toUpperCase();
+      const feedback = document.getElementById("feedback-q8");
+      if (a === "C" && b === "B" && c === "A") {
+        feedback.textContent = "✅ All matches are correct!";
+        feedback.className = "feedback correct";
+      } else {
+        feedback.textContent = "❌ One or more matches are incorrect.";
+        feedback.className = "feedback incorrect";
+      }
+    }
+  </script>
+</body>
+</html>
