@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Encryption & Hashing Matching</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #121212;
+      color: #f0f0f0;
+      text-align: center;
+      padding: 20px;
+      margin: 0;
+    }
+
+    h1 {
+      color: #00e6e6;
+      font-size: 1.8rem;
+      margin-bottom: 20px;
+    }
+
+    .game-container {
+      display: none;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      max-width: 1000px;
+      margin: 20px auto;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-rows: repeat(auto-fit, minmax(70px, auto));
+      gap: 12px;
+    }
+
+    .box, .dropzone {
+      background-color: #1e1e1e;
+      padding: 12px;
+      border-radius: 8px;
+      border: 2px dashed #607d8b;
+      height: 70px;
+      min-height: 70px;
+      max-height: 70px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.9rem;
+      touch-action: none;
+      user-select: none;
+      word-break: break-word;
+    }
+
+    .box {
+      cursor: grab;
+      background-color: #263238;
+      border: 2px solid #607d8b;
+    }
+
+    .dropzone.correct {
+      border-color: #00c853;
+      background-color: #2e7d32;
+    }
+
+    .dropzone.incorrect {
+      animation: flashRed 0.5s;
+    }
+
+    .dragging {
+      position: absolute;
+      z-index: 1000;
+      pointer-events: none;
+      opacity: 0.85;
+      background-color: #263238;
+      padding: 12px;
+      border-radius: 8px;
+      width: 80vw;
+      max-width: 260px;
+      text-align: center;
+    }
+
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 1rem;
+      background-color: #00e6e6;
+      color: #121212;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    #winMessage {
+      margin-top: 20px;
+      font-size: 1.2rem;
+      color: #00c853;
+    }
+
+    @keyframes flashRed {
+      0% { background-color: #ff1744; }
+      100% { background-color: #1e1e1e; }
+    }
+  </style>
+</head>
+<body>
+  <h1>Encryption & Hashing Matching</h1>
+
+  <div id="rounds">
+    <div class="game-container" id="round-1"></div>
+    <div class="game-container" id="round-2"></div>
+    <div class="game-container" id="round-3"></div>
+  </div>
+
+  <button id="nextBtn" style="display:none;">Next Category</button>
+  <div id="winMessage"></div>
+
+  <script>
+    const rounds = [
+      [
+        ["AES", "Symmetric – 128/192/256; US gov uses xxxxx-256"],
+        ["3DES", "Symmetric – Triple DES; applies DES 3 times"],
+        ["Blowfish", "Symmetric – 64-bit blocks, variable key; Schneier"],
+        ["Twofish", "Symmetric – 128-bit blocks, variable key"],
+        ["RC4", "Symmetric Stream – Used in TLS & WPA; 8-2048-bit keys"]
+      ],
+      [
+        ["RSA", "Asymmetric – Encryption & signatures; large primes"],
+        ["Diffie-Hellman", "Asymmetric – Key exchange for SSL/TLS, SSH"],
+        ["ECC", "Asymmetric – Strong security, small keys; mobile efficient"]
+      ],
+      [
+        ["SHA-2", "Hashing – 256/512; secure NIST standard"],
+        ["MD5", "Hashing – Insecure; collisions possible"],
+        ["HMAC", "Hashing – Integrity & authenticity; MAC added"]
+      ]
+    ];
+
+    let currentRound = 0;
+
+    const nextBtn = document.getElementById("nextBtn");
+    const winMessage = document.getElementById("winMessage");
+
+    function renderRound(roundData, containerId) {
+      const container = document.getElementById(containerId);
+      container.innerHTML = '';
+
+      const left = document.createElement("div");
+      const right = document.createElement("div");
+      left.className = "grid";
+      right.className = "grid";
+
+      roundData.forEach(([algo, expectedDesc]) => {
+        const dropzone = document.createElement("div");
+        dropzone.className = "dropzone";
+        dropzone.dataset.expected = expectedDesc;
+        dropzone.dataset.label = algo;
+        dropzone.textContent = algo;
+
+        dropzone.ondragover = e => e.preventDefault();
+        dropzone.ondrop = e => {
+          e.preventDefault();
+          const dragged = document.getElementById(e.dataTransfer.getData("text"));
+          checkMatch(dropzone, dragged);
+        };
+
+        left.appendChild(dropzone);
+      });
+
+      shuffle([...roundData]).forEach(([_, description], i) => {
+        const box = document.createElement("div");
+        box.className = "box";
+        box.draggable = true;
+        box.textContent = description;
+        box.dataset.description = description;
+        box.id = `${containerId}-desc-${i}`;
+
+        box.ondragstart = e => {
+          e.dataTransfer.setData("text", box.id);
+        };
+
+        // Mobile touch support
+        box.addEventListener("touchstart", function(e) {
+          e.preventDefault();
+          const touch = e.touches[0];
+          const clone = box.cloneNode(true);
+          clone.classList.add("dragging");
+          document.body.appendChild(clone);
+
+          const offsetX = clone.offsetWidth / 2;
+          const offsetY = clone.offsetHeight / 2;
+
+          const moveAt = (touch) => {
+            clone.style.transform = `translate(${touch.pageX - offsetX}px, ${touch.pageY - offsetY}px)`;
+          };
+
+          moveAt(touch);
+
+          const onMove = e => moveAt(e.touches[0]);
+
+          const onEnd = e => {
+            document.removeEventListener("touchmove", onMove);
+            document.removeEventListener("touchend", onEnd);
+            clone.remove();
+
+            const touch = e.changedTouches[0];
+            const dropTarget = document.elementFromPoint(touch.clientX, touch.clientY);
+            const dropzone = dropTarget && dropTarget.closest(".dropzone");
+
+            if (dropzone) checkMatch(dropzone, box);
+          };
+
+          document.addEventListener("touchmove", onMove, { passive: false });
+          document.addEventListener("touchend", onEnd, { passive: false });
+        });
+
+        right.appendChild(box);
+      });
+
+      container.appendChild(left);
+      container.appendChild(right);
+    }
+
+    function checkMatch(dropzone, box) {
+      if (!dropzone || !box || dropzone.classList.contains("correct")) return;
+
+      const expected = dropzone.dataset.expected;
+      const actual = box.dataset.description;
+
+      if (expected === actual) {
+        dropzone.classList.remove("incorrect");
+        dropzone.classList.add("correct");
+        dropzone.innerHTML = `${dropzone.dataset.label} <span style="margin-left:5px;">✓</span>`;
+        box.remove();
+
+        const roundContainer = document.getElementById(`round-${currentRound + 1}`);
+        const remaining = roundContainer.querySelectorAll('.box').length;
+        if (remaining === 0) {
+          if (currentRound < rounds.length - 1) {
+            nextBtn.style.display = "inline-block";
+          } else {
+            nextBtn.style.display = "none";
+            winMessage.textContent = "🎉 You've completed all categories!";
+          }
+        }
+      } else {
+        dropzone.classList.remove("correct");
+        dropzone.classList.add("incorrect");
+      }
+    }
+
+    function startRound(index) {
+      document.querySelectorAll(".game-container").forEach(c => c.style.display = "none");
+      nextBtn.style.display = "none";
+      winMessage.textContent = "";
+
+      const containerId = `round-${index + 1}`;
+      renderRound(rounds[index], containerId);
+      document.getElementById(containerId).style.display = "grid";
+    }
+
+    nextBtn.onclick = () => {
+      currentRound++;
+      if (currentRound < rounds.length) {
+        startRound(currentRound);
+      }
+    };
+
+    function shuffle(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    // Start with round 1
+    startRound(0);
+  </script>
+</body>
+</html>
