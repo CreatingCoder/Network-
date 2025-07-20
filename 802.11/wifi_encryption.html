@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Wi-Fi Encryption Matching</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #121212;
+      color: #f0f0f0;
+      text-align: center;
+      padding: 20px;
+      margin: 0;
+    }
+
+    h1 {
+      color: #00e6e6;
+      font-size: 1.8rem;
+      margin-bottom: 20px;
+    }
+
+    .game-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      max-width: 900px;
+      margin: auto;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-rows: repeat(auto-fit, minmax(70px, auto));
+      gap: 12px;
+    }
+
+    .box, .dropzone {
+      background-color: #1e1e1e;
+      padding: 12px;
+      border-radius: 8px;
+      border: 2px dashed #607d8b;
+      height: 70px;
+      min-height: 70px;
+      max-height: 70px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.95rem;
+      touch-action: none;
+      user-select: none;
+      word-break: break-word;
+    }
+
+    .box {
+      cursor: grab;
+      background-color: #263238;
+      border: 2px solid #607d8b;
+    }
+
+    .dropzone.correct {
+      border-color: #00c853;
+      background-color: #2e7d32;
+    }
+
+    .dropzone.incorrect {
+      animation: flashRed 0.5s;
+    }
+
+    .dragging {
+      position: absolute;
+      z-index: 1000;
+      pointer-events: none;
+      opacity: 0.85;
+      background-color: #263238;
+      padding: 12px;
+      border-radius: 8px;
+      width: 80vw;
+      max-width: 260px;
+      text-align: center;
+    }
+
+    @keyframes flashRed {
+      0% { background-color: #ff1744; }
+      100% { background-color: #1e1e1e; }
+    }
+  </style>
+</head>
+<body>
+  <h1>Match Wi-Fi Security Protocols to Their Encryption Methods</h1>
+  <div class="game-container">
+    <div class="grid" id="protocols"></div>
+    <div class="grid" id="encryptions"></div>
+  </div>
+
+  <script>
+    const pairs = [
+      ["WEP", "RC4 (with IV – weak)"],
+      ["WPA", "TKIP (RC4-based)"],
+      ["WPA2", "CCMP (AES)"],
+      ["WPA3", "GCMP (AES) / SAE"]
+    ];
+
+    const shuffle = arr => arr.map(x => [Math.random(), x]).sort().map(x => x[1]);
+
+    const protocolGrid = document.getElementById("protocols");
+    const encryptionGrid = document.getElementById("encryptions");
+
+    // Left column: Wi-Fi Security Protocols (dropzones)
+    pairs.forEach(([protocol, expectedEnc]) => {
+      const dropzone = document.createElement("div");
+      dropzone.className = "dropzone";
+      dropzone.dataset.expected = expectedEnc;
+      dropzone.dataset.label = protocol;
+      dropzone.textContent = protocol;
+
+      dropzone.ondragover = e => e.preventDefault();
+      dropzone.ondrop = e => {
+        e.preventDefault();
+        const dragged = document.getElementById(e.dataTransfer.getData("text"));
+        checkMatch(dropzone, dragged);
+      };
+
+      protocolGrid.appendChild(dropzone);
+    });
+
+    // Right column: Encryption Types (draggables)
+    shuffle([...pairs]).forEach(([_, encryption], i) => {
+      const box = document.createElement("div");
+      box.className = "box";
+      box.draggable = true;
+      box.textContent = encryption;
+      box.dataset.encryption = encryption;
+      box.id = `enc-${i}`;
+
+      box.ondragstart = e => {
+        e.dataTransfer.setData("text", box.id);
+      };
+
+      // Touch drag support
+      box.addEventListener("touchstart", function(e) {
+        e.preventDefault();
+        const touch = e.touches[0];
+        const clone = box.cloneNode(true);
+        clone.classList.add("dragging");
+        document.body.appendChild(clone);
+
+        const offsetX = clone.offsetWidth / 2;
+        const offsetY = clone.offsetHeight / 2;
+
+        const moveAt = (touch) => {
+          clone.style.transform = `translate(${touch.pageX - offsetX}px, ${touch.pageY - offsetY}px)`;
+        };
+
+        moveAt(touch);
+
+        const onMove = e => moveAt(e.touches[0]);
+
+        const onEnd = e => {
+          document.removeEventListener("touchmove", onMove);
+          document.removeEventListener("touchend", onEnd);
+          clone.remove();
+
+          const touch = e.changedTouches[0];
+          const dropTarget = document.elementFromPoint(touch.clientX, touch.clientY);
+          const dropzone = dropTarget && dropTarget.closest(".dropzone");
+
+          if (dropzone) checkMatch(dropzone, box);
+        };
+
+        document.addEventListener("touchmove", onMove, { passive: false });
+        document.addEventListener("touchend", onEnd, { passive: false });
+      });
+
+      encryptionGrid.appendChild(box);
+    });
+
+    function checkMatch(dropzone, box) {
+      if (!dropzone || !box || dropzone.classList.contains("correct")) return;
+
+      const expected = dropzone.dataset.expected;
+      const actual = box.dataset.encryption;
+
+      if (expected === actual) {
+        dropzone.classList.remove("incorrect");
+        dropzone.classList.add("correct");
+        dropzone.innerHTML = `${dropzone.dataset.label} <span style="margin-left:5px;">✓</span>`;
+        box.remove();
+      } else {
+        dropzone.classList.remove("correct");
+        dropzone.classList.add("incorrect");
+      }
+    }
+  </script>
+</body>
+</html>
