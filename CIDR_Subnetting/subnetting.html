@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Subnetting Practice Quiz</title>
+  <style>
+    body {
+      background: #121212;
+      color: #f0f0f0;
+      font-family: Arial, sans-serif;
+      max-width: 700px;
+      margin: auto;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      color: #00e6e6;
+    }
+    .question {
+      background: #1e1e1e;
+      border: 1px solid #333;
+      padding: 15px;
+      margin-bottom: 20px;
+      border-radius: 8px;
+    }
+    .question h3 {
+      margin-top: 0;
+    }
+    .options {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .options button {
+      background: #293445;
+      color: white;
+      border: none;
+      padding: 10px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: transform 0.2s ease, background 0.2s ease;
+    }
+    .options button:hover {
+      transform: scale(1.05);
+    }
+    .correct {
+      background: #2e7d32 !important;
+    }
+    .wrong {
+      background: #c62828 !important;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Subnetting Practice Quiz</h1>
+
+<div id="quiz"></div>
+
+<script>
+const quizData = [
+  {
+    question: "1. What is the network ID for 10.0.12.77/20?",
+    answers: ["10.0.0.0","10.0.12.64","10.0.0.64","10.0.12.0"],
+    correct: "10.0.0.0"
+  },
+  {
+    question: "2. What is the broadcast address for 172.16.35.200/27?",
+    answers: ["172.16.35.223","172.16.35.224","172.16.35.239","172.16.35.255"],
+    correct: "172.16.35.223"
+  },
+  {
+    question: "3. How many usable host IPs are in a /29 subnet?",
+    answers: ["2","6","8","14"],
+    correct: "6"
+  },
+  {
+    question: "4. First usable host for 192.168.50.64/26?",
+    answers: ["192.168.50.65","192.168.50.66","192.168.50.63","192.168.50.1"],
+    correct: "192.168.50.65"
+  },
+  {
+    question: "5. 8 equal subnets from 192.168.1.0/24 need which subnet mask?",
+    answers: ["255.255.255.224 (/27)","255.255.255.240 (/28)","255.255.255.248 (/29)","255.255.255.192 (/26)"],
+    correct: "255.255.255.224 (/27)"
+  },
+  {
+    question: "6. Network ID for 172.31.199.14/19?",
+    answers: ["172.31.192.0","172.31.199.0","172.31.160.0","172.31.128.0"],
+    correct: "172.31.192.0"
+  },
+  {
+    question: "7. Valid host in 192.168.4.32/28?",
+    answers: ["192.168.4.32","192.168.4.33","192.168.4.47","192.168.4.48"],
+    correct: "192.168.4.33"
+  },
+  {
+    question: "8. How many subnets if you borrow 3 bits from /24?",
+    answers: ["4","6","8","16"],
+    correct: "8"
+  }
+];
+
+// Shuffle answers
+function shuffle(array) {
+  return array.sort(() => Math.random() - 0.5);
+}
+
+const quizContainer = document.getElementById("quiz");
+
+quizData.forEach((q, index) => {
+  const div = document.createElement("div");
+  div.className = "question";
+  div.innerHTML = `<h3>${q.question}</h3>`;
+  
+  const optionsDiv = document.createElement("div");
+  optionsDiv.className = "options";
+  
+  shuffle(q.answers).forEach(answer => {
+    const btn = document.createElement("button");
+    btn.textContent = answer;
+    btn.onclick = () => {
+      if (answer === q.correct) {
+        btn.classList.add("correct");
+      } else {
+        btn.classList.add("wrong");
+      }
+      // disable all buttons after answering
+      optionsDiv.querySelectorAll("button").forEach(b => b.disabled = true);
+    };
+    optionsDiv.appendChild(btn);
+  });
+  
+  div.appendChild(optionsDiv);
+  quizContainer.appendChild(div);
+});
+</script>
+
+</body>
+</html>
