@@ -1,247 +1,584 @@
-<!DOCTYPE html>
-<html lang="en">
 <head>
+
+
   <meta charset="UTF-8" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Syslog Severity Matching</title>
+
+
+  <title>Troubleshooting Order Game - Network+</title>
+
+
+  <title>Network+ Troubleshooting Drag-and-Drop</title>
+
   <style>
+
+
     * {
+
+
       box-sizing: border-box;
+
+
     }
+
+
+
 
     body {
+
       background-color: #121212;
+
       color: #f0f0f0;
+
       font-family: Arial, sans-serif;
+
+
       margin: 0;
+
       padding: 20px;
+
+
+      margin: 0;
+
       text-align: center;
+
     }
+
+
 
     h1 {
+
       color: #00e6e6;
+
+      font-size: 1.6rem;
+
+
       margin-bottom: 10px;
+
     }
+
+
 
     .instructions {
-      color: #ccc;
-      margin-bottom: 20px;
-      font-size: 1rem;
-    }
 
-    .game-wrapper {
-      display: flex;
-      flex-direction: column;
-      gap: 30px;
-      max-width: 900px;
-      margin: auto;
-    }
+@@ -35,15 +40,16 @@
 
-    .columns {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 16px;
-    }
 
-    .dropzone {
-      width: 160px;
-      height: 90px;
-      border-radius: 10px;
+
+    .tile {
+
       background: #1e1e1e;
+
+
+      padding: 14px;
+
+
+      padding: 16px;
+
+      font-size: 1rem;
+
       border: 2px dashed #00e6e6;
-      font-size: 1rem;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      padding: 10px;
-      position: relative;
-    }
 
-    .dropzone .label {
-      font-weight: bold;
-      margin-bottom: 6px;
-    }
+      border-radius: 8px;
 
-    .dropzone .slot {
-      font-size: 0.95rem;
-      color: #ffffff;
-      min-height: 22px;
-    }
 
-    .draggable {
-      background: #2c2c2c;
-      border: 2px solid #00e6e6;
-      border-radius: 10px;
-      width: 160px;
-      height: 90px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 10px;
-      text-align: center;
-      font-size: 1rem;
-      touch-action: none;
+      cursor: move;
+
+
       cursor: grab;
+
+      user-select: none;
+
+
+      touch-action: none;
+
     }
+
+
+
 
     .drag-over {
-      border-color: #00ff99;
+
+
+    .tile.drag-over {
+
+      border: 2px solid #00ff99;
+
     }
 
-    .button-bar {
-      display: flex;
-      justify-content: center;
-      gap: 20px;
-      flex-wrap: wrap;
-      margin-top: 20px;
-    }
 
-    button {
-      padding: 10px 20px;
-      font-size: 1rem;
-      background-color: #00e6e6;
-      border: none;
-      color: #121212;
-      border-radius: 6px;
-      cursor: pointer;
-    }
 
-    #result {
-      font-size: 1.2rem;
-      font-weight: bold;
-      margin-top: 20px;
-    }
+@@ -75,7 +81,7 @@
 
-    .correct {
-      color: #00ff99;
-    }
-
-    .incorrect {
-      color: #ff4c4c;
-    }
-  </style>
 </head>
+
 <body>
-  <h1>Syslog Severity Matching</h1>
-  <p class="instructions">Drag each severity name to the correct Syslog number.</p>
 
-  <div class="game-wrapper">
-    <div class="columns" id="dropzones"></div>
-    <div class="columns" id="draggables"></div>
-  </div>
+  <h1>Network+ Troubleshooting Order</h1>
 
-  <div class="button-bar">
-    <button onclick="checkMatches()">Check Answers</button>
-    <button onclick="initGame()">Reset</button>
-  </div>
 
-  <div id="result"></div>
+  <p class="instructions">Drag and drop the steps into the correct order from top to bottom.</p>
 
-  <script>
-    const pairs = [
-      { num: "0", name: "Emergency" },
-      { num: "1", name: "Alert" },
-      { num: "2", name: "Critical" },
-      { num: "3", name: "Error" },
-      { num: "4", name: "Warning" },
-      { num: "5", name: "Notice" },
-      { num: "6", name: "Informational" },
-      { num: "7", name: "Debug" }
+
+  <p class="instructions">Drag and drop the steps into the correct order.</p>
+
+  <div id="game"></div>
+
+  <button onclick="checkOrder()">Check Answer</button>
+
+  <div id="result" class="feedback"></div>
+
+@@ -91,88 +97,96 @@ <h1>Network+ Troubleshooting Order</h1>
+
+      "Document findings"
+
     ];
 
-    const dropContainer = document.getElementById("dropzones");
-    const dragContainer = document.getElementById("draggables");
-    const result = document.getElementById("result");
-    let dragged = null;
+
+
+
+    let shuffled = [...correctOrder];
+
+
+    let draggedEl = null;
+
+
+    let touchStartY = 0;
+
+
+
+
+    // Fisher-Yates shuffle
 
     function shuffle(array) {
+
       for (let i = array.length - 1; i > 0; i--) {
+
         const j = Math.floor(Math.random() * (i + 1));
+
         [array[i], array[j]] = [array[j], array[i]];
+
       }
+
     }
 
-    function initGame() {
-      dropContainer.innerHTML = "";
-      dragContainer.innerHTML = "";
-      result.textContent = "";
-      result.className = "";
 
-      // Create dropzones
-      pairs.forEach(pair => {
-        const drop = document.createElement("div");
-        drop.className = "dropzone";
-        drop.dataset.num = pair.num;
-        drop.innerHTML = `
-          <div class="label">${pair.num}</div>
-          <div class="slot" data-slot></div>
-        `;
 
-        drop.addEventListener("dragover", e => e.preventDefault());
-        drop.addEventListener("dragenter", () => drop.classList.add("drag-over"));
-        drop.addEventListener("dragleave", () => drop.classList.remove("drag-over"));
-        drop.addEventListener("drop", () => {
-          drop.classList.remove("drag-over");
-          if (dragged) {
-            const slot = drop.querySelector(".slot");
-            slot.textContent = dragged.dataset.name;
-          }
-        });
 
-        drop.addEventListener("touchend", e => {
-          const touch = e.changedTouches[0];
-          const elements = document.elementsFromPoint(touch.clientX, touch.clientY);
-          const target = elements.find(el => el.classList?.contains("dropzone"));
-          if (target && dragged) {
-            const slot = target.querySelector(".slot");
-            slot.textContent = dragged.dataset.name;
-          }
-        });
+    shuffle(shuffled);
 
-        dropContainer.appendChild(drop);
-      });
 
-      // Create draggable labels
-      const shuffled = [...pairs];
+
+
+
+    const gameContainer = document.getElementById("game");
+
+
+
+
+
+    shuffled.forEach((step, i) => {
+
+
+      const div = document.createElement("div");
+
+
+      div.className = "tile";
+
+
+      div.draggable = true;
+
+
+      div.textContent = step;
+
+
+      div.dataset.index = i;
+
+
+
+
+
+      // Drag events
+
+
+      div.addEventListener("dragstart", dragStart);
+
+
+      div.addEventListener("dragover", dragOver);
+
+
+      div.addEventListener("drop", drop);
+
+
+      div.addEventListener("dragenter", dragEnter);
+
+
+      div.addEventListener("dragleave", dragLeave);
+
+
+
+
+
+      gameContainer.appendChild(div);
+
+
+    });
+
+
+
+
+
+    let draggedElement = null;
+
+
+
+
+
+    function dragStart(e) {
+
+
+      draggedElement = this;
+
+
+    }
+
+
+
+
+
+    function dragOver(e) {
+
+
+      e.preventDefault();
+
+
+    }
+
+
+
+
+
+    function dragEnter(e) {
+
+
+      this.classList.add("drag-over");
+
+
+    }
+
+
+
+
+
+    function dragLeave(e) {
+
+
+      this.classList.remove("drag-over");
+
+
+    }
+
+
+
+
+
+    function drop(e) {
+
+
+      e.preventDefault();
+
+
+      this.classList.remove("drag-over");
+
+
+
+
+
+      const target = this;
+
+
+      if (draggedElement !== target) {
+
+
+        const container = gameContainer;
+
+
+        const children = Array.from(container.children);
+
+
+        const draggedIndex = children.indexOf(draggedElement);
+
+
+        const targetIndex = children.indexOf(target);
+
+
+
+
+
+        if (draggedIndex > targetIndex) {
+
+
+          container.insertBefore(draggedElement, target);
+
+
+        } else {
+
+
+          container.insertBefore(draggedElement, target.nextSibling);
+
+
+        }
+
+
+      }
+
+
+    function createTiles() {
+
+
+      const game = document.getElementById("game");
+
+
+      game.innerHTML = "";
+
+
+      const shuffled = [...correctOrder];
+
+
       shuffle(shuffled);
 
-      shuffled.forEach(pair => {
-        const drag = document.createElement("div");
-        drag.className = "draggable";
-        drag.draggable = true;
-        drag.dataset.name = pair.name;
-        drag.textContent = pair.name;
 
-        drag.addEventListener("dragstart", () => dragged = drag);
-        drag.addEventListener("touchstart", () => dragged = drag);
 
-        dragContainer.appendChild(drag);
+
+
+      shuffled.forEach(step => {
+
+
+        const tile = document.createElement("div");
+
+
+        tile.className = "tile";
+
+
+        tile.textContent = step;
+
+
+
+
+
+        // Desktop drag events
+
+
+        tile.draggable = true;
+
+
+        tile.addEventListener("dragstart", () => {
+
+
+          draggedEl = tile;
+
+
+        });
+
+
+
+
+
+        tile.addEventListener("dragover", e => e.preventDefault());
+
+
+
+
+
+        tile.addEventListener("drop", () => {
+
+
+          if (draggedEl && draggedEl !== tile) {
+
+
+            const container = tile.parentNode;
+
+
+            const children = Array.from(container.children);
+
+
+            const draggedIndex = children.indexOf(draggedEl);
+
+
+            const targetIndex = children.indexOf(tile);
+
+
+            if (draggedIndex < targetIndex) {
+
+
+              container.insertBefore(draggedEl, tile.nextSibling);
+
+
+            } else {
+
+
+              container.insertBefore(draggedEl, tile);
+
+
+            }
+
+
+          }
+
+
+        });
+
+
+
+
+
+        // Touch support
+
+
+        tile.addEventListener("touchstart", e => {
+
+
+          draggedEl = tile;
+
+
+          touchStartY = e.touches[0].clientY;
+
+
+        });
+
+
+
+
+
+        tile.addEventListener("touchmove", e => {
+
+
+          e.preventDefault();
+
+
+        });
+
+
+
+
+
+        tile.addEventListener("touchend", e => {
+
+
+          const y = e.changedTouches[0].clientY;
+
+
+          const elements = document.elementsFromPoint(e.changedTouches[0].clientX, y);
+
+
+          const dropTarget = elements.find(el => el.classList && el.classList.contains("tile") && el !== draggedEl);
+
+
+          if (dropTarget) {
+
+
+            const container = dropTarget.parentNode;
+
+
+            const children = Array.from(container.children);
+
+
+            const draggedIndex = children.indexOf(draggedEl);
+
+
+            const targetIndex = children.indexOf(dropTarget);
+
+
+            if (draggedIndex < targetIndex) {
+
+
+              container.insertBefore(draggedEl, dropTarget.nextSibling);
+
+
+            } else {
+
+
+              container.insertBefore(draggedEl, dropTarget);
+
+
+            }
+
+
+          }
+
+
+        });
+
+
+
+
+
+        game.appendChild(tile);
+
+
       });
+
     }
 
-    function checkMatches() {
-      let correct = 0;
 
-      document.querySelectorAll(".dropzone").forEach(drop => {
-        const expectedNum = drop.dataset.num;
-        const slot = drop.querySelector(".slot");
-        const label = slot.textContent.trim();
-        const match = pairs.find(p => p.num === expectedNum && p.name === label);
-        if (match) correct++;
-      });
 
-      if (correct === pairs.length) {
-        result.textContent = "✅ Perfect match! Great job.";
-        result.className = "correct";
+    function checkOrder() {
+
+
+      const tiles = document.querySelectorAll(".tile");
+
+
+      const userOrder = Array.from(tiles).map(tile => tile.textContent.trim());
+
+
+      const tiles = Array.from(document.querySelectorAll(".tile"));
+
+
+      const userOrder = tiles.map(tile => tile.textContent.trim());
+
+      const isCorrect = userOrder.every((step, index) => step === correctOrder[index]);
+
+
+
+
+      const result = document.getElementById("result");
+
+
+
+
+      if (isCorrect) {
+
+
+        result.textContent = "✅ Correct! Well done.";
+
+
+        result.textContent = "✅ Correct! Great job.";
+
+        result.className = "feedback correct";
+
       } else {
-        result.textContent = `❌ ${correct} of ${pairs.length} correct. Try again.`;
-        result.className = "incorrect";
+
+
+        result.textContent = "❌ Incorrect order. Try again.";
+
+
+        result.textContent = "❌ Not quite. Try again.";
+
+        result.className = "feedback incorrect";
+
       }
+
     }
 
-    initGame();
+
+
+
+
+    createTiles();
+
   </script>
+
 </body>
+
 </html>
