@@ -98,7 +98,7 @@
     ];
 
     let draggedEl = null;
-    let touchStartY = 0;
+    let touchClone = null;
 
     function shuffle(array) {
       for (let i = array.length - 1; i > 0; i--) {
@@ -140,31 +140,30 @@
           }
         });
 
-        // Touch support
+        // Mobile touch support
         tile.addEventListener("touchstart", e => {
           draggedEl = tile;
-          touchStartY = e.touches[0].clientY;
-        });
-
-        tile.addEventListener("touchmove", e => {
-          e.preventDefault();
+          e.target.classList.add("dragging");
         });
 
         tile.addEventListener("touchend", e => {
-          const y = e.changedTouches[0].clientY;
-          const elements = document.elementsFromPoint(e.changedTouches[0].clientX, y);
-          const dropTarget = elements.find(el => el.classList && el.classList.contains("tile") && el !== draggedEl);
-          if (dropTarget) {
-            const container = dropTarget.parentNode;
+          const touch = e.changedTouches[0];
+          const elements = document.elementsFromPoint(touch.clientX, touch.clientY);
+          const target = elements.find(el => el.classList?.contains("tile") && el !== draggedEl);
+
+          if (target && draggedEl) {
+            const container = target.parentNode;
             const children = Array.from(container.children);
             const draggedIndex = children.indexOf(draggedEl);
-            const targetIndex = children.indexOf(dropTarget);
+            const targetIndex = children.indexOf(target);
             if (draggedIndex < targetIndex) {
-              container.insertBefore(draggedEl, dropTarget.nextSibling);
+              container.insertBefore(draggedEl, target.nextSibling);
             } else {
-              container.insertBefore(draggedEl, dropTarget);
+              container.insertBefore(draggedEl, target);
             }
           }
+
+          e.target.classList.remove("dragging");
         });
 
         game.appendChild(tile);
