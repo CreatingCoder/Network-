@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Syslog Severity Matching</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: #121212;
+      color: #f0f0f0;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+    }
+
+    h1 {
+      color: #00e6e6;
+      margin-bottom: 10px;
+    }
+
+    .instructions {
+      color: #ccc;
+      margin-bottom: 20px;
+      font-size: 1rem;
+    }
+
+    .game-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 30px;
+      max-width: 900px;
+      margin: auto;
+    }
+
+    .columns {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 16px;
+    }
+
+    .dropzone {
+      width: 160px;
+      height: 90px;
+      border-radius: 10px;
+      background: #1e1e1e;
+      border: 2px dashed #00e6e6;
+      font-size: 1rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 10px;
+      position: relative;
+    }
+
+    .dropzone .label {
+      font-weight: bold;
+      margin-bottom: 6px;
+    }
+
+    .dropzone .slot {
+      font-size: 0.95rem;
+      color: #ffffff;
+      min-height: 22px;
+    }
+
+    .draggable {
+      background: #2c2c2c;
+      border: 2px solid #00e6e6;
+      border-radius: 10px;
+      width: 160px;
+      height: 90px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 10px;
+      text-align: center;
+      font-size: 1rem;
+      touch-action: none;
+      cursor: grab;
+    }
+
+    .drag-over {
+      border-color: #00ff99;
+    }
+
+    .button-bar {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 1rem;
+      background-color: #00e6e6;
+      border: none;
+      color: #121212;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    #result {
+      font-size: 1.2rem;
+      font-weight: bold;
+      margin-top: 20px;
+    }
+
+    .correct {
+      color: #00ff99;
+    }
+
+    .incorrect {
+      color: #ff4c4c;
+    }
+  </style>
+</head>
+<body>
+  <h1>Syslog Severity Matching</h1>
+  <p class="instructions">Drag each severity name to the correct Syslog number.</p>
+
+  <div class="game-wrapper">
+    <div class="columns" id="dropzones"></div>
+    <div class="columns" id="draggables"></div>
+  </div>
+
+  <div class="button-bar">
+    <button onclick="checkMatches()">Check Answers</button>
+    <button onclick="initGame()">Reset</button>
+  </div>
+
+  <div id="result"></div>
+
+  <script>
+    const pairs = [
+      { num: "0", name: "Emergency" },
+      { num: "1", name: "Alert" },
+      { num: "2", name: "Critical" },
+      { num: "3", name: "Error" },
+      { num: "4", name: "Warning" },
+      { num: "5", name: "Notice" },
+      { num: "6", name: "Informational" },
+      { num: "7", name: "Debug" }
+    ];
+
+    const dropContainer = document.getElementById("dropzones");
+    const dragContainer = document.getElementById("draggables");
+    const result = document.getElementById("result");
+    let dragged = null;
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+    }
+
+    function initGame() {
+      dropContainer.innerHTML = "";
+      dragContainer.innerHTML = "";
+      result.textContent = "";
+      result.className = "";
+
+      // Create dropzones
+      pairs.forEach(pair => {
+        const drop = document.createElement("div");
+        drop.className = "dropzone";
+        drop.dataset.num = pair.num;
+        drop.innerHTML = `
+          <div class="label">${pair.num}</div>
+          <div class="slot" data-slot></div>
+        `;
+
+        drop.addEventListener("dragover", e => e.preventDefault());
+        drop.addEventListener("dragenter", () => drop.classList.add("drag-over"));
+        drop.addEventListener("dragleave", () => drop.classList.remove("drag-over"));
+        drop.addEventListener("drop", () => {
+          drop.classList.remove("drag-over");
+          if (dragged) {
+            const slot = drop.querySelector(".slot");
+            slot.textContent = dragged.dataset.name;
+          }
+        });
+
+        drop.addEventListener("touchend", e => {
+          const touch = e.changedTouches[0];
+          const elements = document.elementsFromPoint(touch.clientX, touch.clientY);
+          const target = elements.find(el => el.classList?.contains("dropzone"));
+          if (target && dragged) {
+            const slot = target.querySelector(".slot");
+            slot.textContent = dragged.dataset.name;
+          }
+        });
+
+        dropContainer.appendChild(drop);
+      });
+
+      // Create draggable labels
+      const shuffled = [...pairs];
+      shuffle(shuffled);
+
+      shuffled.forEach(pair => {
+        const drag = document.createElement("div");
+        drag.className = "draggable";
+        drag.draggable = true;
+        drag.dataset.name = pair.name;
+        drag.textContent = pair.name;
+
+        drag.addEventListener("dragstart", () => dragged = drag);
+        drag.addEventListener("touchstart", () => dragged = drag);
+
+        dragContainer.appendChild(drag);
+      });
+    }
+
+    function checkMatches() {
+      let correct = 0;
+
+      document.querySelectorAll(".dropzone").forEach(drop => {
+        const expectedNum = drop.dataset.num;
+        const slot = drop.querySelector(".slot");
+        const label = slot.textContent.trim();
+        const match = pairs.find(p => p.num === expectedNum && p.name === label);
+        if (match) correct++;
+      });
+
+      if (correct === pairs.length) {
+        result.textContent = "✅ Perfect match! Great job.";
+        result.className = "correct";
+      } else {
+        result.textContent = `❌ ${correct} of ${pairs.length} correct. Try again.`;
+        result.className = "incorrect";
+      }
+    }
+
+    initGame();
+  </script>
+</body>
+</html>
