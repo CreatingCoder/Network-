@@ -119,7 +119,7 @@
 </head>
 <body>
   <h1>Syslog Severity Matching</h1>
-  <p class="instructions">Drag each severity name to the correct Syslog number.</p>
+  <p class="instructions">Tap a severity, then tap a number to match them.</p>
 
   <div class="game-wrapper">
     <div class="columns" id="dropzones"></div>
@@ -145,10 +145,7 @@
       { num: "7", name: "Debug" }
     ];
 
-    const dropContainer = document.getElementById("dropzones");
-    const dragContainer = document.getElementById("draggables");
-    const result = document.getElementById("result");
-    let dragged = null;
+    let selected = null;
 
     function shuffle(array) {
       for (let i = array.length - 1; i > 0; i--) {
@@ -158,6 +155,10 @@
     }
 
     function initGame() {
+      const dropContainer = document.getElementById("dropzones");
+      const dragContainer = document.getElementById("draggables");
+      const result = document.getElementById("result");
+
       dropContainer.innerHTML = "";
       dragContainer.innerHTML = "";
       result.textContent = "";
@@ -167,33 +168,15 @@
         const drop = document.createElement("div");
         drop.className = "dropzone";
         drop.dataset.num = pair.num;
-        drop.innerHTML = `
-          <div class="label">${pair.num}</div>
-          <div class="slot" data-slot></div>
-        `;
-
-        drop.addEventListener("dragover", e => e.preventDefault());
-        drop.addEventListener("drop", () => {
-          if (dragged) {
+        drop.innerHTML = `<div class="label">${pair.num}</div><div class="slot" data-slot></div>`;
+        drop.onclick = () => {
+          if (selected) {
             const slot = drop.querySelector(".slot");
-            slot.textContent = dragged.dataset.name;
+            slot.textContent = selected.dataset.name;
+            selected.classList.remove("selected");
+            selected = null;
           }
-        });
-
-        drop.addEventListener("touchstart", e => {
-          e.preventDefault();
-        });
-
-        drop.addEventListener("touchend", e => {
-          const touch = e.changedTouches[0];
-          const elements = document.elementsFromPoint(touch.clientX, touch.clientY);
-          const target = elements.find(el => el.classList?.contains("dropzone"));
-          if (target && dragged) {
-            const slot = target.querySelector(".slot");
-            slot.textContent = dragged.dataset.name;
-          }
-        });
-
+        };
         dropContainer.appendChild(drop);
       });
 
@@ -205,21 +188,18 @@
         drag.className = "draggable";
         drag.dataset.name = pair.name;
         drag.textContent = pair.name;
-
-        drag.draggable = true;
-        drag.addEventListener("dragstart", () => dragged = drag);
-
-        drag.addEventListener("touchstart", e => {
-          dragged = drag;
-        });
-
+        drag.onclick = () => {
+          document.querySelectorAll('.draggable').forEach(el => el.classList.remove('selected'));
+          selected = drag;
+          drag.classList.add("selected");
+        };
         dragContainer.appendChild(drag);
       });
     }
 
     function checkMatches() {
+      const result = document.getElementById("result");
       let correct = 0;
-
       document.querySelectorAll(".dropzone").forEach(drop => {
         const expectedNum = drop.dataset.num;
         const slot = drop.querySelector(".slot");
@@ -227,7 +207,6 @@
         const match = pairs.find(p => p.num === expectedNum && p.name === label);
         if (match) correct++;
       });
-
       if (correct === pairs.length) {
         result.textContent = "✅ Perfect match! Great job.";
         result.className = "correct";
