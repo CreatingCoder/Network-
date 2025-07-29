@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Troubleshooting Order Game - Network+</title>
+  <style>
+    body {
+      background-color: #121212;
+      color: #f0f0f0;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+    }
+
+    h1 {
+      color: #00e6e6;
+      font-size: 1.6rem;
+    }
+
+    .instructions {
+      font-size: 1rem;
+      color: #ccc;
+      margin-bottom: 20px;
+    }
+
+    #game {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-width: 600px;
+      margin: auto;
+    }
+
+    .tile {
+      background: #1e1e1e;
+      padding: 14px;
+      font-size: 1rem;
+      border: 2px dashed #00e6e6;
+      border-radius: 8px;
+      cursor: move;
+      user-select: none;
+    }
+
+    .drag-over {
+      border: 2px solid #00ff99;
+    }
+
+    .feedback {
+      margin-top: 20px;
+      font-size: 1.2rem;
+      font-weight: bold;
+    }
+
+    .correct {
+      color: #00ff99;
+    }
+
+    .incorrect {
+      color: #ff4c4c;
+    }
+
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 1rem;
+      background-color: #00e6e6;
+      border: none;
+      color: #121212;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>Network+ Troubleshooting Order</h1>
+  <p class="instructions">Drag and drop the steps into the correct order from top to bottom.</p>
+  <div id="game"></div>
+  <button onclick="checkOrder()">Check Answer</button>
+  <div id="result" class="feedback"></div>
+
+  <script>
+    const correctOrder = [
+      "Identify the problem",
+      "Establish a theory of probable cause",
+      "Test the theory",
+      "Establish a plan of action",
+      "Implement the solution",
+      "Verify full system functionality",
+      "Document findings"
+    ];
+
+    let shuffled = [...correctOrder];
+
+    // Fisher-Yates shuffle
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+    }
+
+    shuffle(shuffled);
+
+    const gameContainer = document.getElementById("game");
+
+    shuffled.forEach((step, i) => {
+      const div = document.createElement("div");
+      div.className = "tile";
+      div.draggable = true;
+      div.textContent = step;
+      div.dataset.index = i;
+
+      // Drag events
+      div.addEventListener("dragstart", dragStart);
+      div.addEventListener("dragover", dragOver);
+      div.addEventListener("drop", drop);
+      div.addEventListener("dragenter", dragEnter);
+      div.addEventListener("dragleave", dragLeave);
+
+      gameContainer.appendChild(div);
+    });
+
+    let draggedElement = null;
+
+    function dragStart(e) {
+      draggedElement = this;
+    }
+
+    function dragOver(e) {
+      e.preventDefault();
+    }
+
+    function dragEnter(e) {
+      this.classList.add("drag-over");
+    }
+
+    function dragLeave(e) {
+      this.classList.remove("drag-over");
+    }
+
+    function drop(e) {
+      e.preventDefault();
+      this.classList.remove("drag-over");
+
+      const target = this;
+      if (draggedElement !== target) {
+        const container = gameContainer;
+        const children = Array.from(container.children);
+        const draggedIndex = children.indexOf(draggedElement);
+        const targetIndex = children.indexOf(target);
+
+        if (draggedIndex > targetIndex) {
+          container.insertBefore(draggedElement, target);
+        } else {
+          container.insertBefore(draggedElement, target.nextSibling);
+        }
+      }
+    }
+
+    function checkOrder() {
+      const tiles = document.querySelectorAll(".tile");
+      const userOrder = Array.from(tiles).map(tile => tile.textContent.trim());
+      const isCorrect = userOrder.every((step, index) => step === correctOrder[index]);
+
+      const result = document.getElementById("result");
+      if (isCorrect) {
+        result.textContent = "✅ Correct! Well done.";
+        result.className = "feedback correct";
+      } else {
+        result.textContent = "❌ Incorrect order. Try again.";
+        result.className = "feedback incorrect";
+      }
+    }
+  </script>
+</body>
+</html>
