@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Network+ Troubleshooting Drag-and-Drop</title>
+  <title>Syslog Severity Matching</title>
   <style>
     * {
       box-sizing: border-box;
@@ -13,50 +13,105 @@
       background-color: #121212;
       color: #f0f0f0;
       font-family: Arial, sans-serif;
-      padding: 20px;
       margin: 0;
+      padding: 20px;
       text-align: center;
     }
 
     h1 {
       color: #00e6e6;
-      font-size: 1.6rem;
       margin-bottom: 10px;
     }
 
     .instructions {
-      font-size: 1rem;
       color: #ccc;
       margin-bottom: 20px;
+      font-size: 1rem;
     }
 
-    #game {
+    .game-wrapper {
       display: flex;
       flex-direction: column;
-      gap: 12px;
-      max-width: 600px;
+      gap: 30px;
+      max-width: 900px;
       margin: auto;
     }
 
-    .tile {
+    .columns {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 16px;
+    }
+
+    .dropzone {
+      width: 160px;
+      height: 90px;
+      border-radius: 10px;
       background: #1e1e1e;
-      padding: 16px;
-      font-size: 1rem;
       border: 2px dashed #00e6e6;
-      border-radius: 8px;
-      cursor: grab;
-      user-select: none;
+      font-size: 1rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 10px;
+      position: relative;
+    }
+
+    .dropzone .label {
+      font-weight: bold;
+      margin-bottom: 6px;
+    }
+
+    .dropzone .slot {
+      font-size: 0.95rem;
+      color: #ffffff;
+      min-height: 22px;
+    }
+
+    .draggable {
+      background: #2c2c2c;
+      border: 2px solid #00e6e6;
+      border-radius: 10px;
+      width: 160px;
+      height: 90px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 10px;
+      text-align: center;
+      font-size: 1rem;
       touch-action: none;
+      cursor: grab;
     }
 
-    .tile.drag-over {
-      border: 2px solid #00ff99;
+    .drag-over {
+      border-color: #00ff99;
     }
 
-    .feedback {
+    .button-bar {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
       margin-top: 20px;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 1rem;
+      background-color: #00e6e6;
+      border: none;
+      color: #121212;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    #result {
       font-size: 1.2rem;
       font-weight: bold;
+      margin-top: 20px;
     }
 
     .correct {
@@ -66,39 +121,40 @@
     .incorrect {
       color: #ff4c4c;
     }
-
-    button {
-      margin-top: 20px;
-      padding: 10px 20px;
-      font-size: 1rem;
-      background-color: #00e6e6;
-      border: none;
-      color: #121212;
-      border-radius: 6px;
-      cursor: pointer;
-    }
   </style>
 </head>
 <body>
-  <h1>Network+ Troubleshooting Order</h1>
-  <p class="instructions">Drag and drop the steps into the correct order.</p>
-  <div id="game"></div>
-  <button onclick="checkOrder()">Check Answer</button>
-  <div id="result" class="feedback"></div>
+  <h1>Syslog Severity Matching</h1>
+  <p class="instructions">Drag each severity name to the correct Syslog number.</p>
+
+  <div class="game-wrapper">
+    <div class="columns" id="dropzones"></div>
+    <div class="columns" id="draggables"></div>
+  </div>
+
+  <div class="button-bar">
+    <button onclick="checkMatches()">Check Answers</button>
+    <button onclick="initGame()">Reset</button>
+  </div>
+
+  <div id="result"></div>
 
   <script>
-    const correctOrder = [
-      "Identify the problem",
-      "Establish a theory of probable cause",
-      "Test the theory",
-      "Establish a plan of action",
-      "Implement the solution",
-      "Verify full system functionality",
-      "Document findings"
+    const pairs = [
+      { num: "0", name: "Emergency" },
+      { num: "1", name: "Alert" },
+      { num: "2", name: "Critical" },
+      { num: "3", name: "Error" },
+      { num: "4", name: "Warning" },
+      { num: "5", name: "Notice" },
+      { num: "6", name: "Informational" },
+      { num: "7", name: "Debug" }
     ];
 
-    let draggedEl = null;
-    let touchStartY = 0;
+    const dropContainer = document.getElementById("dropzones");
+    const dragContainer = document.getElementById("draggables");
+    const result = document.getElementById("result");
+    let dragged = null;
 
     function shuffle(array) {
       for (let i = array.length - 1; i > 0; i--) {
@@ -107,86 +163,85 @@
       }
     }
 
-    function createTiles() {
-      const game = document.getElementById("game");
-      game.innerHTML = "";
-      const shuffled = [...correctOrder];
+    function initGame() {
+      dropContainer.innerHTML = "";
+      dragContainer.innerHTML = "";
+      result.textContent = "";
+      result.className = "";
+
+      // Create dropzones
+      pairs.forEach(pair => {
+        const drop = document.createElement("div");
+        drop.className = "dropzone";
+        drop.dataset.num = pair.num;
+        drop.innerHTML = `
+          <div class="label">${pair.num}</div>
+          <div class="slot" data-slot></div>
+        `;
+
+        drop.addEventListener("dragover", e => e.preventDefault());
+        drop.addEventListener("dragenter", () => drop.classList.add("drag-over"));
+        drop.addEventListener("dragleave", () => drop.classList.remove("drag-over"));
+        drop.addEventListener("drop", () => {
+          drop.classList.remove("drag-over");
+          if (dragged) {
+            const slot = drop.querySelector(".slot");
+            slot.textContent = dragged.dataset.name;
+          }
+        });
+
+        drop.addEventListener("touchend", e => {
+          const touch = e.changedTouches[0];
+          const elements = document.elementsFromPoint(touch.clientX, touch.clientY);
+          const target = elements.find(el => el.classList?.contains("dropzone"));
+          if (target && dragged) {
+            const slot = target.querySelector(".slot");
+            slot.textContent = dragged.dataset.name;
+          }
+        });
+
+        dropContainer.appendChild(drop);
+      });
+
+      // Create draggable labels
+      const shuffled = [...pairs];
       shuffle(shuffled);
 
-      shuffled.forEach(step => {
-        const tile = document.createElement("div");
-        tile.className = "tile";
-        tile.textContent = step;
+      shuffled.forEach(pair => {
+        const drag = document.createElement("div");
+        drag.className = "draggable";
+        drag.draggable = true;
+        drag.dataset.name = pair.name;
+        drag.textContent = pair.name;
 
-        // Desktop drag events
-        tile.draggable = true;
-        tile.addEventListener("dragstart", () => {
-          draggedEl = tile;
-        });
+        drag.addEventListener("dragstart", () => dragged = drag);
+        drag.addEventListener("touchstart", () => dragged = drag);
 
-        tile.addEventListener("dragover", e => e.preventDefault());
-
-        tile.addEventListener("drop", () => {
-          if (draggedEl && draggedEl !== tile) {
-            const container = tile.parentNode;
-            const children = Array.from(container.children);
-            const draggedIndex = children.indexOf(draggedEl);
-            const targetIndex = children.indexOf(tile);
-            if (draggedIndex < targetIndex) {
-              container.insertBefore(draggedEl, tile.nextSibling);
-            } else {
-              container.insertBefore(draggedEl, tile);
-            }
-          }
-        });
-
-        // Touch support
-        tile.addEventListener("touchstart", e => {
-          draggedEl = tile;
-          touchStartY = e.touches[0].clientY;
-        });
-
-        tile.addEventListener("touchmove", e => {
-          e.preventDefault();
-        });
-
-        tile.addEventListener("touchend", e => {
-          const y = e.changedTouches[0].clientY;
-          const elements = document.elementsFromPoint(e.changedTouches[0].clientX, y);
-          const dropTarget = elements.find(el => el.classList && el.classList.contains("tile") && el !== draggedEl);
-          if (dropTarget) {
-            const container = dropTarget.parentNode;
-            const children = Array.from(container.children);
-            const draggedIndex = children.indexOf(draggedEl);
-            const targetIndex = children.indexOf(dropTarget);
-            if (draggedIndex < targetIndex) {
-              container.insertBefore(draggedEl, dropTarget.nextSibling);
-            } else {
-              container.insertBefore(draggedEl, dropTarget);
-            }
-          }
-        });
-
-        game.appendChild(tile);
+        dragContainer.appendChild(drag);
       });
     }
 
-    function checkOrder() {
-      const tiles = Array.from(document.querySelectorAll(".tile"));
-      const userOrder = tiles.map(tile => tile.textContent.trim());
-      const isCorrect = userOrder.every((step, index) => step === correctOrder[index]);
-      const result = document.getElementById("result");
+    function checkMatches() {
+      let correct = 0;
 
-      if (isCorrect) {
-        result.textContent = "✅ Correct! Great job.";
-        result.className = "feedback correct";
+      document.querySelectorAll(".dropzone").forEach(drop => {
+        const expectedNum = drop.dataset.num;
+        const slot = drop.querySelector(".slot");
+        const label = slot.textContent.trim();
+        const match = pairs.find(p => p.num === expectedNum && p.name === label);
+        if (match) correct++;
+      });
+
+      if (correct === pairs.length) {
+        result.textContent = "✅ Perfect match! Great job.";
+        result.className = "correct";
       } else {
-        result.textContent = "❌ Not quite. Try again.";
-        result.className = "feedback incorrect";
+        result.textContent = `❌ ${correct} of ${pairs.length} correct. Try again.`;
+        result.className = "incorrect";
       }
     }
 
-    createTiles();
+    initGame();
   </script>
 </body>
 </html>
