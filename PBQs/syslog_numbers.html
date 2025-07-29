@@ -169,7 +169,6 @@
       result.textContent = "";
       result.className = "";
 
-      // Create dropzones
       pairs.forEach(pair => {
         const drop = document.createElement("div");
         drop.className = "dropzone";
@@ -180,10 +179,7 @@
         `;
 
         drop.addEventListener("dragover", e => e.preventDefault());
-        drop.addEventListener("dragenter", () => drop.classList.add("drag-over"));
-        drop.addEventListener("dragleave", () => drop.classList.remove("drag-over"));
         drop.addEventListener("drop", () => {
-          drop.classList.remove("drag-over");
           if (dragged) {
             const slot = drop.querySelector(".slot");
             slot.textContent = dragged.dataset.name;
@@ -192,29 +188,30 @@
 
         drop.addEventListener("touchend", e => {
           const touch = e.changedTouches[0];
-          const elements = document.elementsFromPoint(touch.clientX, touch.clientY);
-          const target = elements.find(el => el.classList?.contains("dropzone"));
-          if (target && dragged) {
+          const target = document.elementFromPoint(touch.clientX, touch.clientY);
+          if (target && target.classList.contains("dropzone")) {
             const slot = target.querySelector(".slot");
-            slot.textContent = dragged.dataset.name;
+            if (dragged) {
+              slot.textContent = dragged.dataset.name;
+            }
           }
         });
 
         dropContainer.appendChild(drop);
       });
 
-      // Create draggable labels
       const shuffled = [...pairs];
       shuffle(shuffled);
 
       shuffled.forEach(pair => {
         const drag = document.createElement("div");
         drag.className = "draggable";
-        drag.draggable = true;
         drag.dataset.name = pair.name;
         drag.textContent = pair.name;
 
+        drag.draggable = true;
         drag.addEventListener("dragstart", () => dragged = drag);
+
         drag.addEventListener("touchstart", () => dragged = drag);
 
         dragContainer.appendChild(drag);
