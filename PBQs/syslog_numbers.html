@@ -44,12 +44,10 @@
       gap: 16px;
     }
 
-    .dropzone {
+    .dropzone, .draggable {
       width: 160px;
       height: 90px;
       border-radius: 10px;
-      background: #1e1e1e;
-      border: 2px dashed #00e6e6;
       font-size: 1rem;
       display: flex;
       flex-direction: column;
@@ -57,6 +55,11 @@
       align-items: center;
       padding: 10px;
       position: relative;
+    }
+
+    .dropzone {
+      background: #1e1e1e;
+      border: 2px dashed #00e6e6;
     }
 
     .dropzone .label {
@@ -73,15 +76,6 @@
     .draggable {
       background: #2c2c2c;
       border: 2px solid #00e6e6;
-      border-radius: 10px;
-      width: 160px;
-      height: 90px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 10px;
-      text-align: center;
-      font-size: 1rem;
       touch-action: none;
       cursor: grab;
     }
@@ -186,14 +180,17 @@
           }
         });
 
+        drop.addEventListener("touchstart", e => {
+          e.preventDefault();
+        });
+
         drop.addEventListener("touchend", e => {
           const touch = e.changedTouches[0];
-          const target = document.elementFromPoint(touch.clientX, touch.clientY);
-          if (target && target.classList.contains("dropzone")) {
+          const elements = document.elementsFromPoint(touch.clientX, touch.clientY);
+          const target = elements.find(el => el.classList?.contains("dropzone"));
+          if (target && dragged) {
             const slot = target.querySelector(".slot");
-            if (dragged) {
-              slot.textContent = dragged.dataset.name;
-            }
+            slot.textContent = dragged.dataset.name;
           }
         });
 
@@ -212,7 +209,9 @@
         drag.draggable = true;
         drag.addEventListener("dragstart", () => dragged = drag);
 
-        drag.addEventListener("touchstart", () => dragged = drag);
+        drag.addEventListener("touchstart", e => {
+          dragged = drag;
+        });
 
         dragContainer.appendChild(drag);
       });
