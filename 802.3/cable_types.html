@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cable Type Matching</title>
+  <style>
+    body {
+      background-color: #121212;
+      color: #f0f0f0;
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      margin: 0;
+      text-align: center;
+    }
+
+    h1 {
+      color: #00e6e6;
+    }
+
+    .instructions {
+      color: #ccc;
+      margin-bottom: 20px;
+    }
+
+    .game-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 30px;
+      max-width: 900px;
+      margin: auto;
+    }
+
+    .columns {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 16px;
+    }
+
+    .dropzone, .draggable {
+      width: 180px;
+      height: 100px;
+      border-radius: 10px;
+      font-size: 1rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 10px;
+    }
+
+    .dropzone {
+      background: #1e1e1e;
+      border: 2px dashed #00e6e6;
+    }
+
+    .dropzone .label {
+      font-weight: bold;
+      margin-bottom: 6px;
+    }
+
+    .dropzone .slot {
+      color: #ffffff;
+      min-height: 22px;
+    }
+
+    .draggable {
+      background: #2c2c2c;
+      border: 2px solid #00e6e6;
+      cursor: pointer;
+    }
+
+    .button-bar {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin-top: 40px;
+      padding-top: 20px;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 1rem;
+      background-color: #00e6e6;
+      border: none;
+      color: #121212;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    #result {
+      font-size: 1.2rem;
+      font-weight: bold;
+      margin-top: 20px;
+    }
+
+    .correct {
+      color: #00ff99;
+    }
+
+    .incorrect {
+      color: #ff4c4c;
+    }
+
+    .selected {
+      outline: 3px solid #00ff99;
+    }
+  </style>
+</head>
+<body>
+  <h1>Match Network Cable Types</h1>
+  <p class="instructions">Tap a cable type below, then tap the correct connection description.</p>
+
+  <div class="game-wrapper">
+    <div class="columns" id="dropzones"></div>
+    <div class="columns" id="draggables"></div>
+  </div>
+
+  <div class="button-bar">
+    <button onclick="checkMatches()">Check Answers</button>
+    <button onclick="initGame()">Reset</button>
+  </div>
+
+  <div id="result"></div>
+
+  <script>
+    const pairs = [
+      { cable: "Straight-Through", desc: "PC to Switch or Router to Modem" },
+      { cable: "Crossover", desc: "Switch to Switch or PC to PC" },
+      { cable: "Console Cable", desc: "PC to Router Console Port" },
+      { cable: "Fiber Optic", desc: "Long-distance, high-speed backbones" },
+      { cable: "Coaxial", desc: "Used in older cable networks" },
+      { cable: "Shielded Twisted Pair", desc: "Used in high interference environments" }
+    ];
+
+    let selected = null;
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+    }
+
+    function initGame() {
+      const dropContainer = document.getElementById("dropzones");
+      const dragContainer = document.getElementById("draggables");
+      const result = document.getElementById("result");
+
+      dropContainer.innerHTML = "";
+      dragContainer.innerHTML = "";
+      result.textContent = "";
+      result.className = "";
+
+      pairs.forEach(pair => {
+        const drop = document.createElement("div");
+        drop.className = "dropzone";
+        drop.dataset.desc = pair.desc;
+        drop.innerHTML = `<div class="label">${pair.desc}</div><div class="slot"></div>`;
+        drop.onclick = () => {
+          if (selected) {
+            const slot = drop.querySelector(".slot");
+            slot.textContent = selected.dataset.cable;
+            selected.classList.remove("selected");
+            selected = null;
+          }
+        };
+        dropContainer.appendChild(drop);
+      });
+
+      const shuffled = [...pairs];
+      shuffle(shuffled);
+
+      shuffled.forEach(pair => {
+        const drag = document.createElement("div");
+        drag.className = "draggable";
+        drag.dataset.cable = pair.cable;
+        drag.textContent = pair.cable;
+        drag.onclick = () => {
+          document.querySelectorAll('.draggable').forEach(el => el.classList.remove('selected'));
+          selected = drag;
+          drag.classList.add("selected");
+        };
+        dragContainer.appendChild(drag);
+      });
+    }
+
+    function checkMatches() {
+      const result = document.getElementById("result");
+      let correct = 0;
+      document.querySelectorAll(".dropzone").forEach(drop => {
+        const expected = drop.dataset.desc;
+        const slot = drop.querySelector(".slot");
+        const label = slot.textContent.trim();
+        const match = pairs.find(p => p.desc === expected && p.cable === label);
+        if (match) correct++;
+      });
+      if (correct === pairs.length) {
+        result.textContent = "✅ Perfect match! Great job.";
+        result.className = "correct";
+      } else {
+        result.textContent = `❌ ${correct} of ${pairs.length} correct. Try again.`;
+        result.className = "incorrect";
+      }
+    }
+
+    initGame();
+  </script>
+</body>
+</html>
