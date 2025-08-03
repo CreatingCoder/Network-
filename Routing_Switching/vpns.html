@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VPN Types Quiz</title>
+  <style>
+    body {
+      background-color: #121212;
+      color: #f0f0f0;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+    }
+
+    h1 {
+      color: #00e6e6;
+    }
+
+    .instructions {
+      color: #ccc;
+      margin-bottom: 20px;
+    }
+
+    .game-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 30px;
+      max-width: 900px;
+      margin: auto;
+    }
+
+    .columns {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 16px;
+    }
+
+    .dropzone, .draggable {
+      width: 220px;
+      height: 110px;
+      border-radius: 10px;
+      font-size: 1rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 10px;
+    }
+
+    .dropzone {
+      background: #1e1e1e;
+      border: 2px dashed #00e6e6;
+    }
+
+    .dropzone.correct {
+      background-color: #004d40;
+      border-color: #00ff99;
+    }
+
+    .dropzone.incorrect {
+      background-color: #4d0000;
+      border-color: #ff4c4c;
+    }
+
+    .dropzone .label {
+      font-weight: bold;
+      margin-bottom: 6px;
+    }
+
+    .dropzone .slot {
+      color: #ffffff;
+      min-height: 22px;
+    }
+
+    .draggable {
+      background: #2c2c2c;
+      border: 2px solid #00e6e6;
+      cursor: pointer;
+    }
+
+    .button-bar {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin-top: 40px;
+      padding-top: 20px;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 1rem;
+      background-color: #00e6e6;
+      border: none;
+      color: #121212;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    #result {
+      font-size: 1.2rem;
+      font-weight: bold;
+      margin-top: 20px;
+    }
+
+    .correct {
+      color: #00ff99;
+    }
+
+    .incorrect {
+      color: #ff4c4c;
+    }
+
+    .selected {
+      outline: 3px solid #00ff99;
+    }
+  </style>
+</head>
+<body>
+  <h1>VPN Types Matching</h1>
+  <p class="instructions">Tap a VPN type below, then tap the matching question.</p>
+
+  <div class="game-wrapper">
+    <div class="columns" id="dropzones"></div>
+    <div class="columns" id="draggables"></div>
+  </div>
+
+  <div class="button-bar">
+    <button onclick="initGame()">Reset</button>
+  </div>
+
+  <div id="result"></div>
+
+  <script>
+    const pairs = [
+      { term: "SSL VPN", desc: "Which VPN uses a web browser and is commonly used for remote access without needing special client software?" },
+      { term: "IPsec", desc: "Which VPN protocol operates at the network layer and is often used for site-to-site connections?" },
+      { term: "L2TP", desc: "Which VPN protocol is often paired with IPsec for security and works at the data link layer?" },
+      { term: "IKEv2", desc: "Which VPN protocol is fast, stable, and supports mobility and reconnects quickly on mobile devices?" },
+      { term: "PPTP", desc: "Which older VPN protocol is fast but considered insecure due to weak encryption?" },
+      { term: "OpenVPN", desc: "Which open-source VPN solution uses SSL/TLS for encryption and works well with NAT?" }
+    ];
+
+    let selected = null;
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+    }
+
+    function initGame() {
+      const dropContainer = document.getElementById("dropzones");
+      const dragContainer = document.getElementById("draggables");
+      const result = document.getElementById("result");
+
+      dropContainer.innerHTML = "";
+      dragContainer.innerHTML = "";
+      result.textContent = "";
+      result.className = "";
+
+      pairs.forEach(pair => {
+        const drop = document.createElement("div");
+        drop.className = "dropzone";
+        drop.dataset.desc = pair.desc;
+        drop.innerHTML = `<div class="label">${pair.desc}</div><div class="slot"></div>`;
+        drop.onclick = () => {
+          if (selected) {
+            const slot = drop.querySelector(".slot");
+            const label = selected.dataset.term;
+            const match = pairs.find(p => p.desc === pair.desc && p.term === label);
+
+            if (match) {
+              slot.textContent = label;
+              drop.classList.add("correct");
+              selected.remove();
+            } else {
+              drop.classList.add("incorrect");
+              setTimeout(() => {
+                drop.classList.remove("incorrect");
+                dragContainer.appendChild(selected);
+              }, 500);
+            }
+            selected.classList.remove("selected");
+            selected = null;
+          }
+        };
+        dropContainer.appendChild(drop);
+      });
+
+      const shuffled = [...pairs];
+      shuffle(shuffled);
+
+      shuffled.forEach(pair => {
+        const drag = document.createElement("div");
+        drag.className = "draggable";
+        drag.dataset.term = pair.term;
+        drag.textContent = pair.term;
+        drag.onclick = () => {
+          document.querySelectorAll('.draggable').forEach(el => el.classList.remove('selected'));
+          selected = drag;
+          drag.classList.add("selected");
+        };
+        dragContainer.appendChild(drag);
+      });
+    }
+
+    initGame();
+  </script>
+</body>
+</html>
