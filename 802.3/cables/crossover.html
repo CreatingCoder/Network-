@@ -1,0 +1,267 @@
+<!-- Save as crossover-fixed.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Crossover Cable Quiz</title>
+  <style>
+    body {
+      background-color: #121212;
+      color: #f0f0f0;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 20px;
+    }
+
+    h1 {
+      color: #00e6e6;
+    }
+
+    .quiz-container {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      gap: 50px;
+      flex-wrap: wrap;
+      margin-bottom: 30px;
+    }
+
+    .jack {
+      background-color: #1e1e1e;
+      border: 2px solid #444;
+      border-radius: 6px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      width: 120px;
+    }
+
+    .jack-label {
+      margin-bottom: 10px;
+      font-weight: bold;
+      color: #00e6e6;
+    }
+
+    .slot {
+      height: 30px;
+      border: 2px dashed #555;
+      border-radius: 4px;
+      background-color: #2c2c2c;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      position: relative;
+    }
+
+    .slot.correct {
+      background-color: #2e7d32 !important;
+    }
+
+    .slot.incorrect {
+      background-color: #c62828 !important;
+    }
+
+    .slot::before {
+      content: attr(data-pin);
+      position: absolute;
+      left: -25px;
+      font-size: 12px;
+      color: #999;
+    }
+
+    .palette {
+      margin-top: 30px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .wire {
+      width: 110px;
+      height: 30px;
+      border: 2px solid #666;
+      border-radius: 4px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: grab;
+      color: black;
+      background-size: cover;
+    }
+
+    .wire[data-color="White/Green"] {
+      background: linear-gradient(to right, white 50%, green 50%);
+    }
+
+    .wire[data-color="Green"] {
+      background-color: green;
+      color: white;
+    }
+
+    .wire[data-color="White/Orange"] {
+      background: linear-gradient(to right, white 50%, orange 50%);
+    }
+
+    .wire[data-color="Orange"] {
+      background-color: orange;
+      color: black;
+    }
+
+    .wire[data-color="White/Blue"] {
+      background: linear-gradient(to right, white 50%, #3399ff 50%);
+    }
+
+    .wire[data-color="Blue"] {
+      background-color: #3399ff;
+      color: white;
+    }
+
+    .wire[data-color="White/Brown"] {
+      background: linear-gradient(to right, white 50%, #8B4513 50%);
+    }
+
+    .wire[data-color="Brown"] {
+      background-color: #8B4513;
+      color: white;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    button {
+      margin-top: 30px;
+      padding: 10px 20px;
+      background-color: #00e6e6;
+      border: none;
+      border-radius: 6px;
+      font-weight: bold;
+      font-size: 16px;
+      cursor: pointer;
+      color: #000;
+    }
+
+    @media (max-width: 600px) {
+      .quiz-container {
+        flex-direction: column;
+        align-items: center;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<h1>Crossover Cable Matching Quiz</h1>
+<p>Match the wire colors to each pin for a proper T568A ↔ T568B crossover cable.</p>
+
+<div class="quiz-container">
+  <div class="jack" id="jackA">
+    <div class="jack-label">T568A</div>
+    <div class="slot" data-answer="White/Green" data-pin="1"></div>
+    <div class="slot" data-answer="Green" data-pin="2"></div>
+    <div class="slot" data-answer="White/Orange" data-pin="3"></div>
+    <div class="slot" data-answer="Blue" data-pin="4"></div>
+    <div class="slot" data-answer="White/Blue" data-pin="5"></div>
+    <div class="slot" data-answer="Orange" data-pin="6"></div>
+    <div class="slot" data-answer="White/Brown" data-pin="7"></div>
+    <div class="slot" data-answer="Brown" data-pin="8"></div>
+  </div>
+
+  <div class="jack" id="jackB">
+    <div class="jack-label">T568B</div>
+    <div class="slot" data-answer="White/Orange" data-pin="1"></div>
+    <div class="slot" data-answer="Orange" data-pin="2"></div>
+    <div class="slot" data-answer="White/Green" data-pin="3"></div>
+    <div class="slot" data-answer="Blue" data-pin="4"></div>
+    <div class="slot" data-answer="White/Blue" data-pin="5"></div>
+    <div class="slot" data-answer="Green" data-pin="6"></div>
+    <div class="slot" data-answer="White/Brown" data-pin="7"></div>
+    <div class="slot" data-answer="Brown" data-pin="8"></div>
+  </div>
+</div>
+
+<div class="palette" id="palette"></div>
+
+<button onclick="checkAnswers()">Check Score</button>
+
+<script>
+  const wireColors = [
+    "White/Green", "Green", "White/Orange", "Blue",
+    "White/Blue", "Orange", "White/Brown", "Brown"
+  ];
+
+  const allWires = [...wireColors, ...wireColors];
+  allWires.sort(() => Math.random() - 0.5);
+
+  const palette = document.getElementById("palette");
+
+  allWires.forEach((color, i) => {
+    const wire = document.createElement("div");
+    wire.className = "wire";
+    wire.textContent = color;
+    wire.setAttribute("draggable", true);
+    wire.dataset.color = color;
+    wire.id = `wire-${i}`;
+
+    wire.addEventListener("dragstart", e => {
+      e.dataTransfer.setData("text/plain", wire.id);
+      setTimeout(() => wire.classList.add("hidden"), 0);
+    });
+
+    wire.addEventListener("dragend", () => {
+      wire.classList.remove("hidden");
+    });
+
+    palette.appendChild(wire);
+  });
+
+  const slots = document.querySelectorAll('.slot');
+
+  slots.forEach(slot => {
+    slot.addEventListener('dragover', e => e.preventDefault());
+
+    slot.addEventListener('drop', e => {
+      e.preventDefault();
+      const wireId = e.dataTransfer.getData("text/plain");
+      const wire = document.getElementById(wireId);
+
+      const current = slot.querySelector('.wire');
+      if (current) palette.appendChild(current);
+
+      slot.innerHTML = '';
+      slot.appendChild(wire);
+    });
+  });
+
+  function checkAnswers() {
+    let correct = 0;
+    slots.forEach(slot => {
+      const wire = slot.querySelector('.wire');
+      if (wire) {
+        if (wire.dataset.color === slot.dataset.answer) {
+          slot.classList.add('correct');
+          slot.classList.remove('incorrect');
+          correct++;
+        } else {
+          slot.classList.add('incorrect');
+          slot.classList.remove('correct');
+        }
+      } else {
+        slot.classList.remove('correct', 'incorrect');
+      }
+    });
+
+    if (correct === 16) {
+      alert("✅ Perfect crossover cable!");
+    } else {
+      alert(`You got ${correct}/16 correct.`);
+    }
+  }
+</script>
+</body>
+</html>
