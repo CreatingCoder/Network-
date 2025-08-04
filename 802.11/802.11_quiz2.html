@@ -155,7 +155,10 @@
       result.textContent = "";
       result.className = "";
 
-      pairs.forEach(pair => {
+      const shuffledPairs = [...pairs];
+      shuffle(shuffledPairs); // Randomize dropzones
+
+      shuffledPairs.forEach(pair => {
         const drop = document.createElement("div");
         drop.className = "dropzone";
         drop.dataset.value = pair.value;
@@ -171,10 +174,10 @@
         dropContainer.appendChild(drop);
       });
 
-      const shuffled = [...pairs];
-      shuffle(shuffled);
+      const shuffledDrags = [...pairs];
+      shuffle(shuffledDrags); // Randomize draggables
 
-      shuffled.forEach(pair => {
+      shuffledDrags.forEach(pair => {
         const drag = document.createElement("div");
         drag.className = "draggable";
         drag.dataset.standard = pair.standard;
