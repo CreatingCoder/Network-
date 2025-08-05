@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Inline Command Prompt</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background-color: #000;
+      color: #00ff00;
+      font-family: "Courier New", Courier, monospace;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    #terminal {
+      height: 100vh;
+      overflow-y: auto;
+      padding: 10px;
+      box-sizing: border-box;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .line {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .prefix {
+      margin-right: 5px;
+    }
+
+    .cmd-input {
+      background: none;
+      border: none;
+      color: #00ff00;
+      font-family: inherit;
+      font-size: 1em;
+      outline: none;
+      flex: 1;
+    }
+
+    .cursor {
+      display: inline-block;
+      width: 10px;
+      height: 1em;
+      background-color: #00ff00;
+      animation: blink 1s step-start infinite;
+    }
+
+    @keyframes blink {
+      50% { background-color: transparent; }
+    }
+
+    .popup-top {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: #222;
+      color: #0f0;
+      padding: 10px 20px;
+      border: 1px solid #0f0;
+      border-radius: 5px;
+      font-size: 14px;
+      z-index: 1000;
+    }
+
+    .popup-center {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #222;
+      color: #0f0;
+      padding: 20px 30px;
+      border: 2px solid #0f0;
+      border-radius: 8px;
+      font-size: 18px;
+      text-align: center;
+      z-index: 1001;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="popup-top" id="taskPopup">Try typing: <b>ping 8.8.8.8</b></div>
+  <div class="popup-center" id="successPopup">🎉 Exercise Complete:<br>You successfully pinged 8.8.8.8!</div>
+
+  <div id="terminal"></div>
+
+  <script>
+    const terminal = document.getElementById("terminal");
+    const taskPopup = document.getElementById("taskPopup");
+    const successPopup = document.getElementById("successPopup");
+    let taskCompleted = false;
+
+    const commands = {
+      help: "Available commands:\nhelp - Show this help\nclear - Clear the terminal\necho [text] - Print text\nping [ip] - Simulate a ping",
+    };
+
+    function createInputLine() {
+      const line = document.createElement("div");
+      line.classList.add("line");
+
+      const prefix = document.createElement("span");
+      prefix.classList.add("prefix");
+      prefix.textContent = ">";
+
+      const input = document.createElement("input");
+      input.type = "text";
+      input.classList.add("cmd-input");
+      input.autofocus = true;
+
+      const cursor = document.createElement("span");
+      cursor.classList.add("cursor");
+
+      line.appendChild(prefix);
+      line.appendChild(input);
+      line.appendChild(cursor);
+      terminal.appendChild(line);
+
+      input.focus();
+
+      input.addEventListener("keydown", function(e) {
+        if (e.key === "Enter") {
+          const cmd = input.value.trim();
+          cursor.remove();
+          input.disabled = true;
+          processCommand(cmd, line);
+        }
+      });
+
+      scrollToBottom();
+    }
+
+    function processCommand(cmd, line) {
+      if (cmd === "clear") {
+        terminal.innerHTML = "";
+        createWelcomeMessage();
+        return;
+      }
+
+      if (cmd.startsWith("ping ")) {
+        simulatePing(cmd);
+      } else {
+        const output = document.createElement("div");
+        output.classList.add("line");
+
+        const result = handleCommand(cmd);
+        output.textContent = result;
+        terminal.appendChild(output);
+
+        createInputLine();
+      }
+    }
+
+    function handleCommand(cmd) {
+      const args = cmd.split(" ");
+      const mainCmd = args[0].toLowerCase();
+
+      if (mainCmd === "echo") {
+        return args.slice(1).join(" ");
+      } else if (commands[mainCmd] !== undefined) {
+        return commands[mainCmd];
+      } else if (cmd.trim() === "") {
+        return "";
+      } else {
+        return `Unknown command: ${mainCmd}`;
+      }
+    }
+
+    function simulatePing(cmd) {
+      const ip = cmd.split(" ")[1];
+      const outputLines = [
+        `Pinging ${ip} with 32 bytes of data:`,
+        `Reply from ${ip}: bytes=32 time=5ms TTL=64`,
+        `Reply from ${ip}: bytes=32 time=6ms TTL=64`,
+        `Reply from ${ip}: bytes=32 time=5ms TTL=64`,
+        `Reply from ${ip}: bytes=32 time=4ms TTL=64`,
+        ``,
+        `Ping statistics for ${ip}:`,
+        `    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss)`
+      ];
+
+      let i = 0;
+      const pingInterval = setInterval(() => {
+        const line = document.createElement("div");
+        line.classList.add("line");
+        line.textContent = outputLines[i];
+        terminal.appendChild(line);
+        scrollToBottom();
+        i++;
+        if (i === outputLines.length) {
+          clearInterval(pingInterval);
+          if (ip === "8.8.8.8" && !taskCompleted) {
+            taskCompleted = true;
+            taskPopup.style.display = "none";
+            successPopup.style.display = "block";
+          }
+          createInputLine();
+        }
+      }, 400);
+    }
+
+    function scrollToBottom() {
+      terminal.scrollTop = terminal.scrollHeight;
+    }
+
+    function typeWriter(message, callback) {
+      let i = 0;
+      const interval = setInterval(() => {
+        if (i < message.length) {
+          terminal.appendChild(document.createTextNode(message.charAt(i)));
+          i++;
+          scrollToBottom();
+        } else {
+          clearInterval(interval);
+          terminal.appendChild(document.createElement("br"));
+          callback();
+        }
+      }, 40);
+    }
+
+    function createWelcomeMessage() {
+      const welcomeText = "Welcome to the Terminal...\nType 'help' to get started.\n\n";
+      typeWriter(welcomeText, createInputLine);
+    }
+
+    window.onload = createWelcomeMessage;
+  </script>
+</body>
+</html>
