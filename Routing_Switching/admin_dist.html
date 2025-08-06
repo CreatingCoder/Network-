@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Routing Protocol AD Match</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #121212;
+      color: #f0f0f0;
+      padding: 20px;
+      margin: 0;
+      text-align: center;
+    }
+
+    h1 {
+      color: #00e6e6;
+    }
+
+    .game-container {
+      display: flex;
+      flex-direction: column;
+      gap: 30px;
+      align-items: center;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      width: 100%;
+      max-width: 900px;
+    }
+
+    .dropzone, .draggable {
+      border: 2px dashed #00e6e6;
+      border-radius: 8px;
+      padding: 12px;
+      min-height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 1rem;
+      text-align: center;
+    }
+
+    .dropzone {
+      background-color: #1e1e1e;
+    }
+
+    .draggable {
+      background-color: #263238;
+      cursor: grab;
+      touch-action: none;
+    }
+
+    .correct {
+      background-color: #2e7d32 !important;
+      color: #fff;
+    }
+
+    .wrong {
+      background-color: #c62828 !important;
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <h1>Match Routing Protocols to Their Administrative Distances</h1>
+  <p>Drag the numbers to the correct routing protocols.</p>
+
+  <div class="game-container">
+    <div class="grid" id="dropzones">
+      <div class="dropzone" data-answer="0">Directly Connected</div>
+      <div class="dropzone" data-answer="1">Static Route (next hop)</div>
+      <div class="dropzone" data-answer="20">Exterior BGP</div>
+      <div class="dropzone" data-answer="90">EIGRP (internal)</div>
+      <div class="dropzone" data-answer="110">OSPF</div>
+      <div class="dropzone" data-answer="115">IS-IS</div>
+      <div class="dropzone" data-answer="120">RIP</div>
+      <div class="dropzone" data-answer="170">EIGRP (external)</div>
+      <div class="dropzone" data-answer="200">Interior BGP</div>
+      <div class="dropzone" data-answer="255">Unusable</div>
+    </div>
+
+    <div class="grid" id="answers">
+      <div class="draggable" draggable="true" data-value="0">0</div>
+      <div class="draggable" draggable="true" data-value="1">1</div>
+      <div class="draggable" draggable="true" data-value="20">20</div>
+      <div class="draggable" draggable="true" data-value="90">90</div>
+      <div class="draggable" draggable="true" data-value="110">110</div>
+      <div class="draggable" draggable="true" data-value="115">115</div>
+      <div class="draggable" draggable="true" data-value="120">120</div>
+      <div class="draggable" draggable="true" data-value="170">170</div>
+      <div class="draggable" draggable="true" data-value="200">200</div>
+      <div class="draggable" draggable="true" data-value="255">255</div>
+    </div>
+  </div>
+
+  <script>
+    const draggables = document.querySelectorAll('.draggable');
+    const dropzones = document.querySelectorAll('.dropzone');
+
+    draggables.forEach(draggable => {
+      draggable.addEventListener('dragstart', e => {
+        e.dataTransfer.setData('text/plain', draggable.dataset.value);
+        e.dataTransfer.effectAllowed = "move";
+        draggable.classList.remove("wrong");
+      });
+    });
+
+    dropzones.forEach(zone => {
+      zone.addEventListener('dragover', e => {
+        e.preventDefault();
+        zone.style.borderColor = '#64ffda';
+      });
+
+      zone.addEventListener('dragleave', () => {
+        zone.style.borderColor = '#00e6e6';
+      });
+
+      zone.addEventListener('drop', e => {
+        e.preventDefault();
+        const droppedValue = e.dataTransfer.getData('text/plain');
+        const correctValue = zone.dataset.answer;
+
+        const draggedEl = [...draggables].find(el => el.dataset.value === droppedValue);
+
+        if (droppedValue === correctValue) {
+          zone.classList.add("correct");
+          zone.textContent = `${zone.textContent} ✓`;
+          draggedEl.style.visibility = "hidden";
+          zone.style.borderColor = '#2e7d32';
+        } else {
+          draggedEl.classList.add("wrong");
+          setTimeout(() => {
+            draggedEl.classList.remove("wrong");
+          }, 1000);
+        }
+
+        zone.style.borderColor = '#00e6e6';
+      });
+    });
+  </script>
+</body>
+</html>
