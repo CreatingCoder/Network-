@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Network+ OSI Layer Quiz</title>
+  <style>
+    body {
+      background-color: #121212;
+      color: #f0f0f0;
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      margin: 0;
+      text-align: center;
+    }
+
+    h1 {
+      color: #00e6e6;
+      margin-bottom: 10px;
+    }
+
+    .question-card {
+      display: none;
+      background: #1e1e1e;
+      border: 2px solid #00e6e6;
+      border-radius: 10px;
+      padding: 20px;
+      margin: auto;
+      max-width: 700px;
+    }
+
+    .question-card.active {
+      display: block;
+    }
+
+    .options {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .option {
+      background-color: #263238;
+      border: 2px solid transparent;
+      border-radius: 6px;
+      padding: 10px;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+
+    .option:hover {
+      background-color: #37474f;
+    }
+
+    .correct {
+      background-color: #2e7d32 !important;
+      color: white;
+    }
+
+    .wrong {
+      background-color: #c62828 !important;
+      color: white;
+    }
+
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background: #00e6e6;
+      border: none;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      color: #000;
+    }
+
+    #score {
+      font-size: 1.5rem;
+      color: #00e6e6;
+      margin-top: 30px;
+    }
+  </style>
+</head>
+<body>
+  <h1>OSI Layer Protocol Quiz</h1>
+
+  <div id="quiz"></div>
+  <div id="score"></div>
+
+  <script>
+    const questions = [
+      { q: "HTTP", a: "Application" },
+      { q: "DNS", a: "Application" },
+      { q: "FTP", a: "Application" },
+      { q: "SNMP", a: "Application" },
+      { q: "Telnet", a: "Application" },
+      { q: "SSH", a: "Application" },
+      { q: "DHCP", a: "Application" },
+      { q: "NTP", a: "Application" },
+      { q: "SMTP", a: "Application" },
+      { q: "POP3", a: "Application" },
+      { q: "IMAP", a: "Application" },
+
+      { q: "SSL/TLS", a: "Presentation" },
+      { q: "JPEG", a: "Presentation" },
+      { q: "MP3", a: "Presentation" },
+
+      { q: "NetBIOS", a: "Session" },
+      { q: "RPC", a: "Session" },
+      { q: "PPTP", a: "Session" },
+
+      { q: "TCP", a: "Transport" },
+      { q: "UDP", a: "Transport" },
+
+      { q: "IP", a: "Network" },
+      { q: "ICMP", a: "Network" },
+      { q: "IGMP", a: "Network" },
+      { q: "IPSec (Tunnel Mode)", a: "Network" },
+      { q: "RIP", a: "Network" },
+      { q: "OSPF", a: "Network" },
+      { q: "BGP", a: "Network" },
+      { q: "EIGRP", a: "Network" },
+
+      { q: "ARP", a: "Data Link" },
+      { q: "Switch", a: "Data Link" },
+      { q: "Frame Relay", a: "Data Link" },
+      { q: "MAC Address", a: "Data Link" },
+      { q: "VLAN Tagging (802.1Q)", a: "Data Link" },
+      { q: "PPP", a: "Data Link" },
+
+      { q: "Ethernet Cable", a: "Physical" },
+      { q: "RJ-45", a: "Physical" },
+      { q: "Hub", a: "Physical" },
+      { q: "Fiber Optic", a: "Physical" },
+      { q: "Bits on the wire", a: "Physical" }
+    ];
+
+    const layers = ["Application", "Presentation", "Session", "Transport", "Network", "Data Link", "Physical"];
+    const quizDiv = document.getElementById("quiz");
+    let current = 0;
+    let score = 0;
+
+    function createQuestion(index) {
+      const question = questions[index];
+      const card = document.createElement("div");
+      card.classList.add("question-card");
+      if (index === 0) card.classList.add("active");
+
+      const title = document.createElement("h2");
+      title.textContent = `(${index + 1}/${questions.length}) What OSI layer is "${question.q}" on?`;
+
+      const optionsDiv = document.createElement("div");
+      optionsDiv.className = "options";
+
+      layers.forEach(layer => {
+        const opt = document.createElement("div");
+        opt.className = "option";
+        opt.textContent = layer;
+        opt.onclick = () => {
+          if (opt.textContent === question.a) {
+            opt.classList.add("correct");
+            score++;
+          } else {
+            opt.classList.add("wrong");
+            [...optionsDiv.children].forEach(o => {
+              if (o.textContent === question.a) o.classList.add("correct");
+            });
+          }
+          [...optionsDiv.children].forEach(o => o.style.pointerEvents = "none");
+          nextBtn.disabled = false;
+        };
+        optionsDiv.appendChild(opt);
+      });
+
+      const nextBtn = document.createElement("button");
+      nextBtn.textContent = index === questions.length - 1 ? "Finish" : "Next";
+      nextBtn.disabled = true;
+      nextBtn.onclick = () => {
+        card.classList.remove("active");
+        if (index + 1 < questions.length) {
+          quizDiv.children[index + 1].classList.add("active");
+        } else {
+          document.getElementById("score").textContent = `You got ${score} out of ${questions.length} correct!`;
+        }
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      };
+
+      card.appendChild(title);
+      card.appendChild(optionsDiv);
+      card.appendChild(nextBtn);
+      quizDiv.appendChild(card);
+    }
+
+    questions.forEach((q, i) => createQuestion(i));
+  </script>
+</body>
+</html>
