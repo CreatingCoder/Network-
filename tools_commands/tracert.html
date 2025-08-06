@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PBQ 4 - tracert</title>
+  <style>
+    html, body {
+      margin: 0; padding: 0;
+      background-color: #000;
+      color: #0f0;
+      font-family: "Courier New", monospace;
+      height: 100vh;
+      overflow: hidden;
+    }
+    #terminal {
+      height: 100vh;
+      overflow-y: auto;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      box-sizing: border-box;
+      white-space: pre-wrap;
+    }
+    .line { display: flex; flex-wrap: wrap; align-items: center; }
+    .prefix { margin-right: 5px; }
+    .cmd-input {
+      background: none; border: none; color: #0f0;
+      font-family: inherit; font-size: 1em; outline: none; flex: 1;
+    }
+    .cursor {
+      width: 10px; height: 1em;
+      background-color: #0f0;
+      animation: blink 1s step-start infinite;
+    }
+    @keyframes blink {
+      50% { background-color: transparent; }
+    }
+    .popup-top, .popup-center {
+      position: absolute;
+      background: #222; color: #0f0;
+      border: 1px solid #0f0;
+      border-radius: 5px;
+      padding: 10px 20px;
+      z-index: 1000;
+    }
+    .popup-top {
+      top: 20px; right: 20px; font-size: 14px;
+    }
+    .popup-center {
+      display: none;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 18px;
+    }
+  </style>
+</head>
+<body>
+  <div class="popup-top" id="taskPopup">Try typing: <b>tracert google.com</b></div>
+  <div class="popup-center" id="successPopup">✅ Traceroute Completed Successfully!</div>
+  <div id="terminal"></div>
+
+  <script>
+    const terminal = document.getElementById("terminal");
+    const taskPopup = document.getElementById("taskPopup");
+    const successPopup = document.getElementById("successPopup");
+    let completed = false;
+
+    function createInputLine() {
+      const line = document.createElement("div");
+      line.classList.add("line");
+      const prefix = document.createElement("span");
+      prefix.classList.add("prefix");
+      prefix.textContent = ">";
+      const input = document.createElement("input");
+      input.classList.add("cmd-input");
+      const cursor = document.createElement("span");
+      cursor.classList.add("cursor");
+
+      line.appendChild(prefix);
+      line.appendChild(input);
+      line.appendChild(cursor);
+      terminal.appendChild(line);
+      input.focus();
+
+      input.addEventListener("keydown", function(e) {
+        if (e.key === "Enter") {
+          cursor.remove();
+          input.disabled = true;
+          handleCommand(input.value.trim());
+        }
+      });
+      scrollToBottom();
+    }
+
+    function handleCommand(cmd) {
+      if (cmd.toLowerCase() === "tracert google.com") {
+        const lines = [
+          "Tracing route to google.com [142.250.64.110]",
+          "over a maximum of 30 hops:\n",
+          "  1   <1 ms   <1 ms   <1 ms  192.168.1.1",
+          "  2     2 ms     2 ms     1 ms  isp-gateway.local [10.0.0.1]",
+          "  3     5 ms     5 ms     5 ms  100.64.0.1",
+          "  4     9 ms     8 ms     9 ms  core.router.net [172.16.10.1]",
+          "  5    12 ms    12 ms    11 ms  transit.net [203.0.113.1]",
+          "  6    18 ms    17 ms    18 ms  google-gateway.net [142.250.64.1]",
+          "  7    21 ms    20 ms    20 ms  google.com [142.250.64.110]",
+          "\nTrace complete."
+        ];
+        let i = 0;
+        const interval = setInterval(() => {
+          const line = document.createElement("div");
+          line.textContent = lines[i];
+          terminal.appendChild(line);
+          scrollToBottom();
+          i++;
+          if (i === lines.length) {
+            clearInterval(interval);
+            if (!completed) {
+              successPopup.style.display = "block";
+              taskPopup.style.display = "none";
+              completed = true;
+            }
+            createInputLine();
+          }
+        }, 400);
+      } else {
+        const line = document.createElement("div");
+        line.textContent = `Unknown command: ${cmd}`;
+        terminal.appendChild(line);
+        createInputLine();
+      }
+    }
+
+    function scrollToBottom() {
+      terminal.scrollTop = terminal.scrollHeight;
+    }
+
+    function init() {
+      const welcome = "Welcome to the Terminal...\nType 'tracert google.com' to complete the task.\n\n";
+      let i = 0;
+      const interval = setInterval(() => {
+        if (i < welcome.length) {
+          terminal.append(welcome.charAt(i));
+          i++;
+          scrollToBottom();
+        } else {
+          clearInterval(interval);
+          terminal.appendChild(document.createElement("br"));
+          createInputLine();
+        }
+      }, 30);
+    }
+
+    window.onload = init;
+  </script>
+</body>
+</html>
