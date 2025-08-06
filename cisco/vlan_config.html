@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Enhanced VLAN Configuration Simulator</title>
+  <style>
+    html, body {
+      margin: 0; padding: 0;
+      background-color: #000;
+      color: #0f0;
+      font-family: "Courier New", monospace;
+      height: 100vh;
+      overflow: hidden;
+    }
+    #terminal {
+      height: 100vh;
+      overflow-y: auto;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      box-sizing: border-box;
+      white-space: pre-wrap;
+    }
+    .line { display: flex; flex-wrap: wrap; align-items: center; }
+    .prefix { margin-right: 5px; }
+    .cmd-input {
+      background: none; border: none; color: #0f0;
+      font-family: inherit; font-size: 1em; outline: none; flex: 1;
+    }
+    .cursor {
+      width: 10px; height: 1em;
+      background-color: #0f0;
+      animation: blink 1s step-start infinite;
+    }
+    @keyframes blink {
+      50% { background-color: transparent; }
+    }
+    .popup-top, .popup-center {
+      position: absolute;
+      background: #222;
+      color: #0f0;
+      border: 1px solid #0f0;
+      border-radius: 5px;
+      padding: 10px 20px;
+      z-index: 1000;
+    }
+    .popup-top {
+      top: 20px;
+      right: 20px;
+      font-size: 14px;
+    }
+    .popup-center {
+      display: none;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 18px;
+    }
+  </style>
+</head>
+<body>
+  <div class="popup-top" id="taskPopup">Create VLAN 10 and assign it to fa0/1</div>
+  <div class="popup-center" id="successPopup">✅ VLAN Assigned and Configured!</div>
+  <div id="terminal"></div>
+
+  <script>
+    const terminal = document.getElementById("terminal");
+    const taskPopup = document.getElementById("taskPopup");
+    const successPopup = document.getElementById("successPopup");
+
+    let mode = "user";
+    let vlanConfigured = false;
+    let vlanNamed = false;
+    let inInterface = false;
+    let currentInterface = "";
+    let assignedInterfaces = [];
+
+    function createInputLine() {
+      const line = document.createElement("div");
+      line.classList.add("line");
+      const prefix = document.createElement("span");
+      prefix.classList.add("prefix");
+      prefix.textContent = getPrompt();
+      const input = document.createElement("input");
+      input.classList.add("cmd-input");
+      const cursor = document.createElement("span");
+      cursor.classList.add("cursor");
+
+      line.appendChild(prefix);
+      line.appendChild(input);
+      line.appendChild(cursor);
+      terminal.appendChild(line);
+      input.focus();
+
+      input.addEventListener("keydown", function(e) {
+        if (e.key === "Enter") {
+          cursor.remove();
+          input.disabled = true;
+          handleCommand(input.value.trim());
+        }
+      });
+
+      scrollToBottom();
+    }
+
+    function getPrompt() {
+      if (inInterface) return "Switch(config-if)#";
+      switch (mode) {
+        case "user": return "Switch>";
+        case "privileged": return "Switch#";
+        case "config": return "Switch(config)#";
+        case "config-vlan": return "Switch(config-vlan)#";
+        default: return "Switch>";
+      }
+    }
+
+    function handleCommand(cmd) {
+      const normalized = cmd.toLowerCase();
+      const line = document.createElement("div");
+
+      if (normalized === "help") {
+        line.textContent = getHelpText();
+      } else if (mode === "user" && normalized === "enable") {
+        mode = "privileged";
+        line.textContent = "";
+      } else if (mode === "privileged" && normalized === "configure terminal") {
+        mode = "config";
+        line.textContent = "Enter configuration commands, one per line. End with CNTL/Z.";
+      } else if (normalized === "do show vlan brief") {
+        line.textContent = showVlanOutput();
+      } else if (mode === "config" && normalized === "vlan 10") {
+        mode = "config-vlan";
+        line.textContent = "";
+      } else if (mode === "config-vlan" && normalized === "name accounting") {
+        vlanConfigured = true;
+        vlanNamed = true;
+        line.textContent = "";
+      } else if (["config", "config-vlan", "privileged", "user"].includes(mode) && normalized === "exit") {
+        if (inInterface) {
+          inInterface = false;
+        } else if (mode === "config-vlan") {
+          mode = "config";
+        } else if (mode === "config") {
+          mode = "privileged";
+        } else if (mode === "privileged") {
+          mode = "user";
+        }
+        line.textContent = "";
+      } else if (mode === "config" && normalized.startsWith("interface fa0/")) {
+        inInterface = true;
+        currentInterface = normalized.split("interface ")[1];
+        line.textContent = "";
+      } else if (inInterface && normalized === "switchport access vlan 10") {
+        assignedInterfaces.push(currentInterface);
+        line.textContent = `Assigned ${currentInterface} to VLAN 10`;
+      } else {
+        line.textContent = `Unknown command: ${cmd}`;
+      }
+
+      terminal.appendChild(line);
+
+      if (vlanConfigured && assignedInterfaces.includes("fa0/1")) {
+        successPopup.style.display = "block";
+        taskPopup.style.display = "none";
+      }
+
+      createInputLine();
+    }
+
+    function getHelpText() {
+      if (inInterface) {
+        return `Available commands:\n  switchport access vlan 10\n  do show vlan brief\n  exit\n  help`;
+      }
+      switch (mode) {
+        case "user":
+          return `Available commands:\n  enable\n  help`;
+        case "privileged":
+          return `Available commands:\n  configure terminal\n  do show vlan brief\n  exit\n  help`;
+        case "config":
+          return `Available commands:\n  vlan 10\n  interface fa0/X\n  do show vlan brief\n  exit\n  help`;
+        case "config-vlan":
+          return `Available commands:\n  name Accounting\n  exit\n  help`;
+        default:
+          return `Available commands:\n  help`;
+      }
+    }
+
+    function showVlanOutput() {
+      let output = `
+VLAN Name                             Status    Ports
+---- -------------------------------- --------- -------------------------------
+1    default                          active    
+10   Accounting                       active    ${assignedInterfaces.join(", ")}
+`;
+      return output;
+    }
+
+    function scrollToBottom() {
+      terminal.scrollTop = terminal.scrollHeight;
+    }
+
+    function init() {
+      const welcome =
+        "Welcome to the Cisco CLI...\nType 'help' at any time to see valid commands.\nTask: Create VLAN 10, name it Accounting, and assign fa0/1 to it.\n\n";
+      let i = 0;
+      const interval = setInterval(() => {
+        if (i < welcome.length) {
+          terminal.append(welcome.charAt(i));
+          i++;
+          scrollToBottom();
+        } else {
+          clearInterval(interval);
+          terminal.appendChild(document.createElement("br"));
+          createInputLine();
+        }
+      }, 30);
+    }
+
+    window.onload = init;
+  </script>
+</body>
+</html>
