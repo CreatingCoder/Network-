@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PBQ 7 - netstat (Windows)</title>
+  <style>
+    html, body {
+      margin: 0; padding: 0;
+      background-color: #000;
+      color: #0f0;
+      font-family: "Courier New", monospace;
+      height: 100vh;
+      overflow: hidden;
+    }
+    #terminal {
+      height: 100vh;
+      overflow-y: auto;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      box-sizing: border-box;
+      white-space: pre-wrap;
+    }
+    .line { display: flex; flex-wrap: wrap; align-items: center; }
+    .prefix { margin-right: 5px; }
+    .cmd-input {
+      background: none; border: none; color: #0f0;
+      font-family: inherit; font-size: 1em; outline: none; flex: 1;
+    }
+    .cursor {
+      width: 10px; height: 1em;
+      background-color: #0f0;
+      animation: blink 1s step-start infinite;
+    }
+    @keyframes blink {
+      50% { background-color: transparent; }
+    }
+    .popup-top, .popup-center {
+      position: absolute;
+      background: #222; color: #0f0;
+      border: 1px solid #0f0;
+      border-radius: 5px;
+      padding: 10px 20px;
+      z-index: 1000;
+    }
+    .popup-top {
+      top: 20px; right: 20px; font-size: 14px;
+    }
+    .popup-center {
+      display: none;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 18px;
+    }
+  </style>
+</head>
+<body>
+  <div class="popup-top" id="taskPopup">Try typing: <b>netstat</b></div>
+  <div class="popup-center" id="successPopup">✅ Netstat Output Verified!</div>
+  <div id="terminal"></div>
+
+  <script>
+    const terminal = document.getElementById("terminal");
+    const taskPopup = document.getElementById("taskPopup");
+    const successPopup = document.getElementById("successPopup");
+    let completed = false;
+
+    function createInputLine() {
+      const line = document.createElement("div");
+      line.classList.add("line");
+      const prefix = document.createElement("span");
+      prefix.classList.add("prefix");
+      prefix.textContent = ">";
+      const input = document.createElement("input");
+      input.classList.add("cmd-input");
+      const cursor = document.createElement("span");
+      cursor.classList.add("cursor");
+
+      line.appendChild(prefix);
+      line.appendChild(input);
+      line.appendChild(cursor);
+      terminal.appendChild(line);
+      input.focus();
+
+      input.addEventListener("keydown", function(e) {
+        if (e.key === "Enter") {
+          cursor.remove();
+          input.disabled = true;
+          handleCommand(input.value.trim());
+        }
+      });
+      scrollToBottom();
+    }
+
+    function handleCommand(cmd) {
+      if (cmd.toLowerCase() === "netstat") {
+        const lines = [
+          "Active Connections",
+          "",
+          "  Proto  Local Address          Foreign Address        State",
+          "  TCP    0.0.0.0:135            0.0.0.0:0              LISTENING",
+          "  TCP    127.0.0.1:49664        127.0.0.1:49665        ESTABLISHED",
+          "  TCP    192.168.1.100:50234    93.184.216.34:80       ESTABLISHED",
+          "  UDP    0.0.0.0:123            *:*",
+          "  UDP    192.168.1.100:5353     *:*",
+          "",
+          "  Proto  Local Address          Foreign Address        State",
+          "  TCP    [::]:135               [::]:0                 LISTENING",
+          "  TCP    [::1]:49664            [::1]:49665            ESTABLISHED",
+          "  UDP    [::]:123               *:*"
+        ];
+        let i = 0;
+        const interval = setInterval(() => {
+          const line = document.createElement("div");
+          line.textContent = lines[i];
+          terminal.appendChild(line);
+          scrollToBottom();
+          i++;
+          if (i === lines.length) {
+            clearInterval(interval);
+            if (!completed) {
+              successPopup.style.display = "block";
+              taskPopup.style.display = "none";
+              completed = true;
+            }
+            createInputLine();
+          }
+        }, 300);
+      } else {
+        const line = document.createElement("div");
+        line.textContent = `Unknown command: ${cmd}`;
+        terminal.appendChild(line);
+        createInputLine();
+      }
+    }
+
+    function scrollToBottom() {
+      terminal.scrollTop = terminal.scrollHeight;
+    }
+
+    function init() {
+      const welcome = "Welcome to the Terminal...\nType 'netstat' to complete the task.\n\n";
+      let i = 0;
+      const interval = setInterval(() => {
+        if (i < welcome.length) {
+          terminal.append(welcome.charAt(i));
+          i++;
+          scrollToBottom();
+        } else {
+          clearInterval(interval);
+          terminal.appendChild(document.createElement("br"));
+          createInputLine();
+        }
+      }, 30);
+    }
+
+    window.onload = init;
+  </script>
+</body>
+</html>
