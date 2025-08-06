@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PBQ 6 - dig</title>
+  <style>
+    html, body {
+      margin: 0; padding: 0;
+      background-color: #000;
+      color: #0f0;
+      font-family: "Courier New", monospace;
+      height: 100vh;
+      overflow: hidden;
+    }
+    #terminal {
+      height: 100vh;
+      overflow-y: auto;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      box-sizing: border-box;
+      white-space: pre-wrap;
+    }
+    .line { display: flex; flex-wrap: wrap; align-items: center; }
+    .prefix { margin-right: 5px; }
+    .cmd-input {
+      background: none; border: none; color: #0f0;
+      font-family: inherit; font-size: 1em; outline: none; flex: 1;
+    }
+    .cursor {
+      width: 10px; height: 1em;
+      background-color: #0f0;
+      animation: blink 1s step-start infinite;
+    }
+    @keyframes blink {
+      50% { background-color: transparent; }
+    }
+    .popup-top, .popup-center {
+      position: absolute;
+      background: #222; color: #0f0;
+      border: 1px solid #0f0;
+      border-radius: 5px;
+      padding: 10px 20px;
+      z-index: 1000;
+    }
+    .popup-top {
+      top: 20px; right: 20px; font-size: 14px;
+    }
+    .popup-center {
+      display: none;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 18px;
+    }
+  </style>
+</head>
+<body>
+  <div class="popup-top" id="taskPopup">Try typing: <b>dig google.com</b></div>
+  <div class="popup-center" id="successPopup">✅ DNS Lookup Complete!</div>
+  <div id="terminal"></div>
+
+  <script>
+    const terminal = document.getElementById("terminal");
+    const taskPopup = document.getElementById("taskPopup");
+    const successPopup = document.getElementById("successPopup");
+    let completed = false;
+
+    function createInputLine() {
+      const line = document.createElement("div");
+      line.classList.add("line");
+      const prefix = document.createElement("span");
+      prefix.classList.add("prefix");
+      prefix.textContent = "$";
+      const input = document.createElement("input");
+      input.classList.add("cmd-input");
+      const cursor = document.createElement("span");
+      cursor.classList.add("cursor");
+
+      line.appendChild(prefix);
+      line.appendChild(input);
+      line.appendChild(cursor);
+      terminal.appendChild(line);
+      input.focus();
+
+      input.addEventListener("keydown", function(e) {
+        if (e.key === "Enter") {
+          cursor.remove();
+          input.disabled = true;
+          handleCommand(input.value.trim());
+        }
+      });
+      scrollToBottom();
+    }
+
+    function handleCommand(cmd) {
+      if (cmd.toLowerCase() === "dig google.com") {
+        const lines = [
+          "; <<>> DiG 9.16.1 <<>> google.com",
+          ";; global options: +cmd",
+          ";; Got answer:",
+          ";; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 12345",
+          ";; flags: qr rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1",
+          "",
+          ";; QUESTION SECTION:",
+          ";google.com.\t\tIN\tA",
+          "",
+          ";; ANSWER SECTION:",
+          "google.com.\t300\tIN\tA\t142.250.64.110",
+          "",
+          ";; Query time: 25 msec",
+          ";; SERVER: 8.8.8.8#53(8.8.8.8)",
+          ";; WHEN: Wed Aug 06 20:00:00 UTC 2025",
+          ";; MSG SIZE  rcvd: 65"
+        ];
+        let i = 0;
+        const interval = setInterval(() => {
+          const line = document.createElement("div");
+          line.textContent = lines[i];
+          terminal.appendChild(line);
+          scrollToBottom();
+          i++;
+          if (i === lines.length) {
+            clearInterval(interval);
+            if (!completed) {
+              successPopup.style.display = "block";
+              taskPopup.style.display = "none";
+              completed = true;
+            }
+            createInputLine();
+          }
+        }, 300);
+      } else {
+        const line = document.createElement("div");
+        line.textContent = `Unknown command: ${cmd}`;
+        terminal.appendChild(line);
+        createInputLine();
+      }
+    }
+
+    function scrollToBottom() {
+      terminal.scrollTop = terminal.scrollHeight;
+    }
+
+    function init() {
+      const welcome = "Welcome to the Terminal...\nType 'dig google.com' to complete the task.\n\n";
+      let i = 0;
+      const interval = setInterval(() => {
+        if (i < welcome.length) {
+          terminal.append(welcome.charAt(i));
+          i++;
+          scrollToBottom();
+        } else {
+          clearInterval(interval);
+          terminal.appendChild(document.createElement("br"));
+          createInputLine();
+        }
+      }, 30);
+    }
+
+    window.onload = init;
+  </script>
+</body>
+</html>
