@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Router Simulator</title>
+  <style>
+    html, body {
+      margin: 0; padding: 0;
+      background-color: #000;
+      color: #0f0;
+      font-family: "Courier New", monospace;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    #terminal {
+      height: 100vh;
+      overflow-y: auto;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      box-sizing: border-box;
+      white-space: pre-wrap;
+    }
+
+    .line {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .prefix {
+      margin-right: 5px;
+    }
+
+    .cmd-input {
+      background: none;
+      border: none;
+      color: #0f0;
+      font-family: inherit;
+      font-size: 1em;
+      outline: none;
+      flex: 1;
+    }
+
+    .popup-top, .popup-center {
+      position: absolute;
+      background: #222;
+      color: #0f0;
+      border: 1px solid #0f0;
+      border-radius: 5px;
+      padding: 10px 20px;
+      z-index: 1000;
+    }
+
+    .popup-top {
+      top: 20px;
+      right: 20px;
+      font-size: 14px;
+    }
+
+    .popup-center {
+      display: none;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 18px;
+    }
+
+    #commandBox {
+      position: fixed;
+      bottom: 10px;
+      right: 10px;
+      z-index: 2000;
+    }
+
+    #commandToggle {
+      background-color: #222;
+      color: #0f0;
+      border: 1px solid #0f0;
+      border-radius: 5px;
+      padding: 5px 10px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    #commandPanel {
+      display: none;
+      margin-top: 5px;
+      padding: 10px;
+      background: #111;
+      border: 1px solid #0f0;
+      max-width: 250px;
+      max-height: 200px;
+      overflow-y: auto;
+      font-size: 13px;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <div class="popup-top" id="taskPopup">Configure G0/1 to 192.168.10.1/24 and bring it up</div>
+  <div class="popup-center" id="successPopup">✅ Interface Successfully Configured!</div>
+  <div id="terminal"></div>
+  <div id="commandBox">
+    <button id="commandToggle">📘 Commands</button>
+    <div id="commandPanel"></div>
+  </div>
+
+  <script>
+    const terminal = document.getElementById("terminal");
+    const taskPopup = document.getElementById("taskPopup");
+    const successPopup = document.getElementById("successPopup");
+    const commandPanel = document.getElementById("commandPanel");
+    const commandToggle = document.getElementById("commandToggle");
+
+    let mode = "user";
+    let inInterface = false;
+    let ipAssigned = false;
+    let interfaceUp = false;
+    let lastCommand = "";
+
+    function getPrompt() {
+      if (inInterface) return "Router(config-if)#";
+      switch (mode) {
+        case "user": return "Router>";
+        case "privileged": return "Router#";
+        case "config": return "Router(config)#";
+        default: return "Router>";
+      }
+    }
+
+    function getCommandList() {
+      if (inInterface) {
+        return `interface mode:
+  ip address 192.168.10.1 255.255.255.0
+  no shutdown
+  exit
+  help`;
+      }
+      switch (mode) {
+        case "user":
+          return `user mode:
+  enable
+  help`;
+        case "privileged":
+          return `privileged mode:
+  configure terminal
+  config t
+  do show ip interface brief
+  exit
+  help`;
+        case "config":
+          return `config mode:
+  interface gigabitEthernet0/1
+  int g0/1
+  do show ip interface brief
+  exit
+  help`;
+        default:
+          return `help`;
+      }
+    }
+
+    function updateCommandPanel() {
+      commandPanel.textContent = getCommandList();
+    }
+
+    commandToggle.onclick = () => {
+      commandPanel.style.display =
+        commandPanel.style.display === "block" ? "none" : "block";
+      updateCommandPanel();
+    };
+
+    function showInterfaceBrief() {
+      let status = (ipAssigned && interfaceUp) ? "up" : "administratively down";
+      let protocol = (ipAssigned && interfaceUp) ? "up" : "down";
+      let ip = ipAssigned ? "192.168.10.1" : "unassigned";
+
+      return `
+Interface              IP-Address      OK? Method Status                Protocol
+GigabitEthernet0/1     ${ip}   YES manual ${status.padEnd(20)}${protocol}
+`;
+    }
+
+    function createInputLine() {
+      const line = document.createElement("div");
+      line.classList.add("line");
+      const prefix = document.createElement("span");
+      prefix.classList.add("prefix");
+      prefix.textContent = getPrompt();
+      const input = document.createElement("input");
+      input.classList.add("cmd-input");
+
+      line.appendChild(prefix);
+      line.appendChild(input);
+      terminal.appendChild(line);
+      input.focus();
+
+      input.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") {
+          input.disabled = true;
+          handleCommand(input.value.trim());
+          lastCommand = input.value.trim();
+        } else if (e.key === "ArrowUp") {
+          input.value = lastCommand;
+          setTimeout(() => input.setSelectionRange(input.value.length, input.value.length), 0);
+        }
+      });
+
+      scrollToBottom();
+    }
+
+    function handleCommand(cmd) {
+      const normalized = cmd.toLowerCase();
+      const line = document.createElement("div");
+
+      if (normalized === "help") {
+        line.textContent = getCommandList();
+      } else if (mode === "user" && normalized === "enable") {
+        mode = "privileged";
+        line.textContent = "";
+      } else if (mode === "privileged" && (normalized === "configure terminal" || normalized === "config t")) {
+        mode = "config";
+        line.textContent = "Enter configuration commands, one per line. End with CNTL/Z.";
+      } else if (normalized === "do show ip interface brief") {
+        line.textContent = showInterfaceBrief();
+      } else if (mode === "config" && (normalized === "interface gigabitethernet0/1" || normalized === "int g0/1")) {
+        inInterface = true;
+        line.textContent = "";
+      } else if (inInterface && normalized === "ip address 192.168.10.1 255.255.255.0") {
+        ipAssigned = true;
+        line.textContent = "";
+      } else if (inInterface && normalized === "no shutdown") {
+        interfaceUp = true;
+        line.textContent = "";
+      } else if ((inInterface || mode === "config" || mode === "privileged") && normalized === "exit") {
+        if (inInterface) {
+          inInterface = false;
+        } else if (mode === "config") {
+          mode = "privileged";
+        } else if (mode === "privileged") {
+          mode = "user";
+        }
+        line.textContent = "";
+      } else {
+        line.textContent = `Unknown command: ${cmd}`;
+      }
+
+      terminal.appendChild(line);
+
+      if (ipAssigned && interfaceUp) {
+        successPopup.style.display = "block";
+        taskPopup.style.display = "none";
+      }
+
+      updateCommandPanel();
+      createInputLine();
+    }
+
+    function scrollToBottom() {
+      terminal.scrollTop = terminal.scrollHeight;
+    }
+
+    function init() {
+      const welcome =
+        "Welcome to the Router CLI...\nTask: Configure G0/1 to 192.168.10.1/24 and bring it up.\nType 'help' or click 📘 for supported commands.\n\n";
+      let i = 0;
+      const interval = setInterval(() => {
+        if (i < welcome.length) {
+          terminal.append(welcome.charAt(i));
+          i++;
+          scrollToBottom();
+        } else {
+          clearInterval(interval);
+          terminal.appendChild(document.createElement("br"));
+          createInputLine();
+        }
+      }, 30);
+    }
+
+    window.onload = init;
+  </script>
+</body>
+</html>
