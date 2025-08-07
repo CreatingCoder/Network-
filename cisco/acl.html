@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Router ACL Simulation</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background-color: #000;
+      color: #0f0;
+      font-family: "Courier New", monospace;
+      height: 100vh;
+      overflow: hidden;
+    }
+    #terminal {
+      height: 100vh;
+      overflow-y: auto;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      box-sizing: border-box;
+      white-space: pre-wrap;
+    }
+    .line {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .prefix {
+      margin-right: 5px;
+    }
+    .cmd-input {
+      background: none;
+      border: none;
+      color: #0f0;
+      font-family: inherit;
+      font-size: 1em;
+      outline: none;
+      flex: 1;
+    }
+    .popup-top {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: #222;
+      color: #0f0;
+      border: 1px solid #0f0;
+      padding: 10px;
+      border-radius: 5px;
+      font-size: 14px;
+    }
+    .popup-center {
+      display: none;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #222;
+      color: #0f0;
+      padding: 20px;
+      border: 1px solid #0f0;
+      border-radius: 5px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div class="popup-top" id="taskPopup">Task: Configure an ACL to permit 192.168.1.0/24 and deny all others on interface G0/0.</div>
+  <div class="popup-center" id="successPopup">✅ ACL Successfully Configured!</div>
+  <div id="terminal"></div>
+  <script>
+    const terminal = document.getElementById("terminal");
+    const taskPopup = document.getElementById("taskPopup");
+    const successPopup = document.getElementById("successPopup");
+
+    let mode = "user";
+    let aclLines = [];
+    let applied = false;
+    let commandHistory = [];
+    let historyIndex = -1;
+
+    function getPrompt() {
+      switch (mode) {
+        case "user": return "Router>";
+        case "privileged": return "Router#";
+        case "config": return "Router(config)#";
+        case "config-if": return "Router(config-if)#";
+        case "config-acl": return "Router(config-acl)#";
+      }
+    }
+
+    function getHelpText() {
+      switch (mode) {
+        case "user":
+          return "Available commands:\n  enable\n  help";
+        case "privileged":
+          return "Available commands:\n  configure terminal\n  config t\n  show access-lists\n  exit\n  help";
+        case "config":
+          return "Available commands:\n  interface gigabitEthernet0/0\n  int g0/0\n  access-list 100\n  exit\n  help";
+        case "config-if":
+          return "Available commands:\n  ip access-group 100 in\n  exit\n  help";
+        case "config-acl":
+          return "Available commands:\n  permit 192.168.1.0 0.0.0.255\n  deny any\n  exit\n  help";
+      }
+    }
+
+    function createInputLine() {
+      const line = document.createElement("div");
+      line.classList.add("line");
+      const prefix = document.createElement("span");
+      prefix.classList.add("prefix");
+      prefix.textContent = getPrompt();
+      const input = document.createElement("input");
+      input.classList.add("cmd-input");
+
+      line.appendChild(prefix);
+      line.appendChild(input);
+      terminal.appendChild(line);
+      input.focus();
+
+      input.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") {
+          const command = input.value.trim();
+          input.disabled = true;
+          handleCommand(command);
+          if (command) {
+            commandHistory.push(command);
+            historyIndex = commandHistory.length;
+          }
+        } else if (e.key === "ArrowUp") {
+          if (historyIndex > 0) {
+            historyIndex--;
+            input.value = commandHistory[historyIndex];
+          }
+        } else if (e.key === "ArrowDown") {
+          if (historyIndex < commandHistory.length - 1) {
+            historyIndex++;
+            input.value = commandHistory[historyIndex];
+          } else {
+            input.value = "";
+            historyIndex = commandHistory.length;
+          }
+        }
+      });
+
+      terminal.scrollTop = terminal.scrollHeight;
+    }
+
+    function handleCommand(cmd) {
+      const lower = cmd.toLowerCase();
+      const line = document.createElement("div");
+
+      if (lower === "help") {
+        line.textContent = getHelpText();
+      } 
+      else if (lower === "enable" && mode === "user") {
+        mode = "privileged";
+      } 
+      else if ((lower === "configure terminal" || lower === "config t") && mode === "privileged") {
+        mode = "config";
+      } 
+      else if ((lower === "interface gigabitethernet0/0" || lower === "int g0/0") && mode === "config") {
+        mode = "config-if";
+      } 
+      else if (lower === "ip access-group 100 in" && mode === "config-if") {
+        applied = true;
+      } 
+      else if (lower === "access-list 100" && mode === "config") {
+        mode = "config-acl";
+      } 
+      else if ((lower.startsWith("permit") || lower.startsWith("deny")) && mode === "config-acl") {
+        aclLines.push(lower);
+      } 
+      else if (lower === "show access-lists" && mode === "privileged") {
+        if (aclLines.length > 0) {
+          line.textContent = "Standard IP access list 100\n" + aclLines.map(l => "    " + l).join("\n");
+        } else {
+          line.textContent = "% No access list configured";
+        }
+      }
+      else if (lower === "exit") {
+        if (mode === "config-acl") mode = "config";
+        else if (mode === "config-if") mode = "config";
+        else if (mode === "config") mode = "privileged";
+        else if (mode === "privileged") mode = "user";
+      } 
+      else {
+        line.textContent = `Unknown command: ${cmd}`;
+      }
+
+      terminal.appendChild(line);
+
+      if (applied && aclLines.includes("permit 192.168.1.0 0.0.0.255") && aclLines.some(l => l.startsWith("deny"))) {
+        successPopup.style.display = "block";
+        taskPopup.style.display = "none";
+      }
+
+      createInputLine();
+    }
+
+    function init() {
+      const welcome = "Welcome to the Router CLI...\nTask: Configure ACL 100 to permit 192.168.1.0/24 and deny all others on G0/0\nType 'help' to see available commands.\n\n";
+      let i = 0;
+      const interval = setInterval(() => {
+        if (i < welcome.length) {
+          terminal.append(welcome.charAt(i));
+          i++;
+        } else {
+          clearInterval(interval);
+          terminal.appendChild(document.createElement("br"));
+          createInputLine();
+        }
+      }, 20);
+    }
+
+    window.onload = init;
+  </script>
+</body>
+</html>
