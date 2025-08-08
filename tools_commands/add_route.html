@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Persistent Route (Windows) Simulation</title>
+<style>
+  html, body {
+    margin: 0; padding: 0;
+    background: #000; color: #0f0;
+    font-family: "Courier New", monospace;
+    height: 100vh; overflow: hidden;
+  }
+  #container {
+    display: flex; height: 100vh; width: 100%;
+  }
+  #terminal {
+    flex: 1; overflow-y: auto; padding: 10px;
+    box-sizing: border-box; white-space: pre-wrap;
+  }
+  .line { display: flex; flex-wrap: wrap; align-items: center; }
+  .prefix { margin-right: 6px; }
+  .cmd-input {
+    background: none; border: none; color: #0f0;
+    font: inherit; outline: none; flex: 1;
+  }
+  .sidebar {
+    width: 280px; background: #111; color: #0f0;
+    border-left: 1px solid #0f0; padding: 10px;
+    box-sizing: border-box; font-size: 14px; line-height: 1.35;
+  }
+  .popup-center {
+    display: none; position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%); background: #222; color: #0f0;
+    padding: 20px; border: 1px solid #0f0; border-radius: 6px; font-size: 18px;
+  }
+  code { color: #9f9; }
+</style>
+</head>
+<body>
+  <div id="container">
+    <div id="terminal"></div>
+    <div class="sidebar">
+      <b>Task:</b><br>
+      Add a <b>persistent route</b> for <code>10.10.20.0/24</code> via gateway <code>192.168.1.1</code>.<br><br>
+      <b>Try:</b><br>
+      <code>route -p add 10.10.20.0 mask 255.255.255.0 192.168.1.1</code><br>
+      <code>route print</code><br><br>
+      Type <code>help</code> for commands.
+    </div>
+  </div>
+  <div class="popup-center" id="successPopup">✅ Persistent route added!</div>
+
+<script>
+/* ----- State ----- */
+const terminal = document.getElementById("terminal");
+const successPopup = document.getElementById("successPopup");
+
+const PROMPT = "C:\\>";
+const DEST_NET = "10.10.20.0";
+const MASK = "255.255.255.0";
+const GATEWAY = "192.168.1.1";
+
+let persistentRoutes = []; // {dest, mask, gateway, metric}
+let success = false;
+
+// History
+const history = [];
+let historyIndex = -1;
+
+/* ----- UI Helpers ----- */
+function createInputLine() {
+  const line = document.createElement("div");
+  line.classList.add("line");
+
+  const prefix = document.createElement("span");
+  prefix.classList.add("prefix");
+  prefix.textContent = PROMPT;
+
+  const input = document.createElement("input");
+  input.classList.add("cmd-input");
+
+  line.appendChild(prefix);
+  line.appendChild(input);
+  terminal.appendChild(line);
+  input.focus();
+
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      const cmd = input.value.trim();
+      input.disabled = true;
+      if (cmd.length) {
+        history.push(cmd);
+        historyIndex = history.length;
+      }
+      handleCommand(cmd);
+    } else if (e.key === "ArrowUp") {
+      if (historyIndex > 0) {
+        historyIndex--;
+        input.value = history[historyIndex] || "";
+        setTimeout(() => input.setSelectionRange(input.value.length, input.value.length), 0);
+      }
+    } else if (e.key === "ArrowDown") {
+      if (historyIndex < history.length - 1) {
+        historyIndex++;
+        input.value = history[historyIndex] || "";
+      } else {
+        historyIndex = history.length;
+        input.value = "";
+      }
+      setTimeout(() => input.setSelectionRange(input.value.length, input.value.length), 0);
+    }
+  });
+
+  scrollToBottom();
+}
+
+function printOutput(text) {
+  const out = document.createElement("div");
+  out.textContent = text;
+  terminal.appendChild(out);
+  scrollToBottom();
+}
+
+function printBlock(text) {
+  const pre = document.createElement("pre");
+  pre.textContent = text;
+  terminal.appendChild(pre);
+  scrollToBottom();
+}
+
+function scrollToBottom() {
+  terminal.scrollTop = terminal.scrollHeight;
+}
+
+/* ----- Parsing Helpers ----- */
+function normalize(cmd) {
+  // collapse multiple spaces
+  return cmd.replace(/\s+/g, " ").trim();
+}
+
+function tokenize(cmd) {
+  return normalize(cmd).split(" ");
+}
+
+/* ----- Command Handling ----- */
+function handleCommand(rawCmd) {
+  const cmd = normalize(rawCmd);
+  const lower = cmd.toLowerCase();
+
+  if (!cmd) { createInputLine(); return; }
+
+  if (lower === "help") {
+    printOutput(getHelpText());
+    return createInputLine();
+  }
+
+  if (lower === "clear") {
+    terminal.innerHTML = "";
+    return createInputLine();
+  }
+
+  if (lower === "exit") {
+    printOutput("exit");
+    return createInputLine();
+  }
+
+  // ROUTE commands
+  if (lower.startsWith("route ")) {
+    // Accept common add patterns:
+    //   route -p add 10.10.20.0 mask 255.255.255.0 192.168.1.1
+    //   ROUTE ADD 10.10.20.0 MASK 255.255.255.0 192.168.1.1 -p  (we'll accept -p at end too)
+    // Also support 'route print'
+    if (lower === "route print") {
+      renderRoutePrint();
+      return createInputLine();
+    }
+
+    if (lower.startsWith("route add") || lower.startsWith("route -p add")) {
+      return handleRouteAdd(cmd);
+    }
+
+    // Anything else
+    printOutput("The route command syntax is incorrect.\nTry: route -p add 10.10.20.0 mask 255.255.255.0 192.168.1.1");
+    return createInputLine();
+  }
+
+  printOutput(`'${rawCmd}' is not recognized as an internal or external command, operable program or batch file.`);
+  createInputLine();
+}
+
+function handleRouteAdd(originalCmd) {
+  // Make case-insensitive parsing
+  const parts = tokenize(originalCmd);
+  const lowerParts = parts.map(p => p.toLowerCase());
+
+  // Find -p flag (allow anywhere)
+  const hasP = lowerParts.includes("-p");
+
+  // Structure should include: "route", ["-p"], "add", DEST, "mask", MASK, GATEWAY
+  const addIndex = lowerParts.indexOf("add");
+  if (addIndex === -1) {
+    printOutput("The route command syntax is incorrect.");
+    return createInputLine();
+  }
+
+  // We expect sequence after 'add':
+  // [dest] ["mask", mask] [gateway]
+  const dest = parts[addIndex + 1];
+  const maskIndex = lowerParts.indexOf("mask", addIndex + 2);
+  const mask = maskIndex !== -1 ? parts[maskIndex + 1] : null;
+
+  // gateway is last token (not -p)
+  let gw = null;
+  for (let i = parts.length - 1; i > addIndex; i--) {
+    if (lowerParts[i] !== "-p") {
+      gw = parts[i];
+      break;
+    }
+  }
+
+  // Basic validation
+  if (!dest || !mask || !gw) {
+    printOutput("The route command syntax is incorrect.\nUsage: route -p add <dest> mask <mask> <gateway>");
+    return createInputLine();
+  }
+
+  // Verify matches the task
+  if (dest !== DEST_NET || mask !== MASK || gw !== GATEWAY) {
+    printOutput("The route does not match the task.\nExpected: route -p add 10.10.20.0 mask 255.255.255.0 192.168.1.1");
+    return createInputLine();
+  }
+
+  if (!hasP) {
+    printOutput("For this exercise, the route must be persistent. Add the -p flag.");
+    return createInputLine();
+  }
+
+  // Add route (ignore duplicates for simplicity)
+  persistentRoutes.push({
+    dest: DEST_NET, mask: MASK, gateway: GATEWAY, metric: 1
+  });
+
+  // Simulate Windows ROUTE output (quiet success)
+  printOutput("OK!");
+  if (!success) {
+    success = true;
+    successPopup.style.display = "block";
+  }
+  return createInputLine();
+}
+
+/* ----- Renderers ----- */
+function renderRoutePrint() {
+  const header =
+`===========================================================================
+Interface List
+  11...00 11 22 33 44 55 ...... Intel(R) Ethernet Connection
+===========================================================================
+
+IPv4 Route Table
+===========================================================================
+Active Routes:
+Network Destination        Netmask          Gateway       Interface  Metric
+          0.0.0.0          0.0.0.0      192.168.1.1    192.168.1.100    25
+      192.168.1.0    255.255.255.0    192.168.1.100    192.168.1.100    25
+        127.0.0.0        255.0.0.0        127.0.0.1        127.0.0.1    1
+
+Persistent Routes:
+  None`;
+
+  if (persistentRoutes.length === 0) {
+    printBlock(header);
+    return;
+  }
+
+  // Build persistent routes section
+  let persistent = "Persistent Routes:";
+  for (const r of persistentRoutes) {
+    const line =
+`  ${r.dest.padEnd(18)} ${r.mask.padEnd(18)} ${r.gateway.padEnd(15)}  Metric ${r.metric}`;
+    persistent += "\n" + line;
+  }
+
+  const withPersistent = header.replace("Persistent Routes:\n  None", persistent);
+  printBlock(withPersistent);
+}
+
+/* ----- Help ----- */
+function getHelpText() {
+  return `Available commands:
+  route -p add ${DEST_NET} mask ${MASK} ${GATEWAY}
+  route print
+  help
+  clear
+  exit
+
+Notes:
+- Use the -p switch to make the route persistent.
+- Verify with 'route print' (see the Persistent Routes section).`;
+}
+
+/* ----- Init ----- */
+(function init() {
+  const welcome =
+    "Microsoft Windows [Version 10.0.19045.0000]\n" +
+    "(c) Microsoft Corporation. All rights reserved.\n\n" +
+    "Task: Add a persistent route for 10.10.20.0/24 via 192.168.1.1\n" +
+    "Type 'help' to see available commands.\n\n";
+  let i = 0;
+  const interval = setInterval(() => {
+    if (i < welcome.length) {
+      terminal.append(welcome.charAt(i));
+      i++;
+      scrollToBottom();
+    } else {
+      clearInterval(interval);
+      terminal.appendChild(document.createElement("br"));
+      createInputLine();
+    }
+  }, 12);
+})();
+</script>
+</body>
+</html>
