@@ -89,7 +89,7 @@
   <h1>DNS Record Type Matching Quiz</h1>
   <div class="container">
     <div class="columns">
-      <div class="column">
+      <div class="column" id="questions">
         <div class="dropzone" data-answer="MX">Used to direct email to a mail server</div>
         <div class="dropzone" data-answer="SPF">Specifies authorized mail servers</div>
         <div class="dropzone" data-answer="SRV">Defines location of services</div>
@@ -114,6 +114,20 @@
   </div>
 
   <script>
+    // Shuffle function
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    // Randomize dropzones
+    const questionsContainer = document.getElementById('questions');
+    const dropzonesArray = Array.from(questionsContainer.children);
+    shuffleArray(dropzonesArray).forEach(el => questionsContainer.appendChild(el));
+
     const boxes = document.querySelectorAll('.box');
     const dropzones = document.querySelectorAll('.dropzone');
     const choices = document.getElementById('choices');
