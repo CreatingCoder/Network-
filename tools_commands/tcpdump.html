@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>tcpdump Simulation</title>
+<style>
+  html, body {
+    margin: 0; padding: 0;
+    background: #000; color: #0f0;
+    font-family: "Courier New", monospace;
+    height: 100vh; overflow: hidden;
+  }
+  #container {
+    display: flex;
+    height: 100vh;
+    width: 100%;
+  }
+  #terminal {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+    box-sizing: border-box;
+    white-space: pre-wrap;
+  }
+  .line { display: flex; flex-wrap: wrap; align-items: center; }
+  .prefix { margin-right: 6px; }
+  .cmd-input {
+    background: none; border: none; color: #0f0;
+    font: inherit; outline: none; flex: 1;
+  }
+  .sidebar {
+    width: 260px;
+    background: #111;
+    color: #0f0;
+    border-left: 1px solid #0f0;
+    padding: 10px;
+    box-sizing: border-box;
+    font-size: 14px;
+    line-height: 1.35;
+  }
+  .popup-center {
+    display: none;
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    background: #222; color: #0f0;
+    padding: 20px; border: 1px solid #0f0;
+    border-radius: 6px; font-size: 18px;
+  }
+  code { color: #9f9; }
+</style>
+</head>
+<body>
+  <div id="container">
+    <div id="terminal"></div>
+    <div class="sidebar">
+      <b>Task:</b><br>
+      Use <b>tcpdump</b> to capture packets on <code>eth0</code> into <code>capture.pcap</code>,
+      then display the file using <code>cat</code>.<br><br>
+      <b>Try:</b><br>
+      <code>tcpdump -i eth0 -w capture.pcap</code><br>
+      <code>cat capture.pcap</code><br><br>
+      Type <code>help</code> for commands.
+    </div>
+  </div>
+  <div class="popup-center" id="successPopup">✅ Capture created and displayed!</div>
+
+<script>
+const terminal = document.getElementById("terminal");
+const successPopup = document.getElementById("successPopup");
+
+const PROMPT = "user@linux:~$";
+let didCapture = false;
+let didCat = false;
+
+// Command history
+const history = [];
+let historyIndex = -1;
+
+function createInputLine() {
+  const line = document.createElement("div");
+  line.classList.add("line");
+
+  const prefix = document.createElement("span");
+  prefix.classList.add("prefix");
+  prefix.textContent = PROMPT;
+
+  const input = document.createElement("input");
+  input.classList.add("cmd-input");
+
+  line.appendChild(prefix);
+  line.appendChild(input);
+  terminal.appendChild(line);
+  input.focus();
+
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      const cmd = input.value.trim();
+      input.disabled = true;
+      if (cmd.length) {
+        history.push(cmd);
+        historyIndex = history.length;
+      }
+      handleCommand(cmd);
+    } else if (e.key === "ArrowUp") {
+      if (historyIndex > 0) {
+        historyIndex--;
+        input.value = history[historyIndex] || "";
+        setTimeout(() => input.setSelectionRange(input.value.length, input.value.length), 0);
+      }
+    } else if (e.key === "ArrowDown") {
+      if (historyIndex < history.length - 1) {
+        historyIndex++;
+        input.value = history[historyIndex] || "";
+      } else {
+        historyIndex = history.length;
+        input.value = "";
+      }
+      setTimeout(() => input.setSelectionRange(input.value.length, input.value.length), 0);
+    }
+  });
+
+  scrollToBottom();
+}
+
+function printOutput(text) {
+  const out = document.createElement("div");
+  out.textContent = text;
+  terminal.appendChild(out);
+  scrollToBottom();
+}
+
+function printBlock(text) {
+  const pre = document.createElement("pre");
+  pre.textContent = text;
+  terminal.appendChild(pre);
+  scrollToBottom();
+}
+
+function scrollToBottom() {
+  terminal.scrollTop = terminal.scrollHeight;
+}
+
+function normalize(cmd) {
+  let c = cmd.trim();
+  if (c.toLowerCase().startsWith("sudo ")) c = c.slice(5);
+  c = c.replace(/\s+/g, " ");
+  return c;
+}
+
+function handleCommand(rawCmd) {
+  const cmd = normalize(rawCmd);
+  const lower = cmd.toLowerCase();
+
+  if (!cmd) { createInputLine(); return; }
+
+  if (lower === "help") {
+    printOutput(getHelpText());
+    return createInputLine();
+  }
+
+  if (lower.startsWith("tcpdump")) {
+    if (lower === "tcpdump -i eth0 -w capture.pcap") {
+      printOutput("tcpdump: listening on eth0, link-type EN10MB (Ethernet), capture size 262144 bytes");
+      // Simulate capture then Ctrl-C summary:
+      printOutput("^C");
+      printOutput("10 packets captured");
+      printOutput("10 packets received by filter");
+      printOutput("0 packets dropped by kernel");
+      didCapture = true;
+    } else {
+      printOutput("tcpdump: invalid arguments for this exercise.\nTry: tcpdump -i eth0 -w capture.pcap");
+    }
+    return createInputLine();
+  }
+
+  if (lower === "cat capture.pcap") {
+    if (didCapture) {
+      printBlock(fakePcapDump());
+      didCat = true;
+      checkSuccess();
+    } else {
+      printOutput("cat: capture.pcap: No such file or directory");
+    }
+    return createInputLine();
+  }
+
+  if (lower === "ls -l") {
+    if (didCapture) {
+      printOutput("-rw-r--r-- 1 user user 4096 Jan  1 12:00 capture.pcap");
+    } else {
+      printOutput("total 0");
+    }
+    return createInputLine();
+  }
+
+  if (lower === "clear") {
+    terminal.innerHTML = "";
+    return createInputLine();
+  }
+
+  if (lower === "exit") {
+    printOutput("logout");
+    return createInputLine();
+  }
+
+  printOutput(`Unknown command: ${rawCmd}`);
+  createInputLine();
+}
+
+function checkSuccess() {
+  if (didCapture && didCat) {
+    successPopup.style.display = "block";
+  }
+}
+
+function getHelpText() {
+  return `Available commands:
+  tcpdump -i eth0 -w capture.pcap
+  cat capture.pcap
+  ls -l
+  help
+  clear
+  exit
+
+Goal:
+- Capture packets on eth0 into capture.pcap, then view the file with cat.`;
+}
+
+// Fake PCAP hex/ASCII dump (header + 2 packets)
+function fakePcapDump() {
+  return (
+`00000000  d4 c3 b2 a1 02 00 04 00  00 00 00 00 00 00 00 00  ................
+00000010  ff ff 00 00 01 00 00 00  4c 69 62 70 63 61 70 00  ........Libpcap.
+-- PCAP GLOBAL HEADER (magic, version, snaplen, etc.) --
+
+00000020  5f 37 4a 66 9b 12 00 00  3e 00 00 00 3e 00 00 00  _7Jf....>...>...
+00000030  00 00 00 00                                      ....
+[Packet #1 header: ts=1697045343.482, caplen=62, len=62]
+
+00000034  00 15 5d 01 02 03 00 16  3e a1 b2 c3 08 00 45 00  ..].....>.....E.
+00000044  00 34 1c 46 40 00 40 06  a6 ec c0 a8 01 64 c0 a8  .4.F@.@......d..
+00000054  01 c8 c0 23 00 50 1a 2b  3c 4d 00 00 00 00 70 02  ...#.P.+<M....p.
+00000064  72 10 91 7c 00 00 02 04  05 b4 01 03 03 08 01 01  r..|............
+[Ethernet+IPv4+TCP SYN: 192.168.1.100:49283 -> 192.168.1.200:80]
+
+00000074  5f 37 4a 66 9c 13 00 00  2e 00 00 00 2e 00 00 00  _7Jf............
+00000084  00 00 00 00                                      ....
+[Packet #2 header: ts=1697045344.476, caplen=46, len=46]
+
+00000088  00 16 3e a1 b2 c3 00 15  5d 01 02 03 08 06 00 01  ..>.....].......
+00000098  08 00 06 04 00 01 00 15  5d 01 02 03 c0 a8 01 c8  ........].......
+000000a8  00 00 00 00 00 00 c0 a8  01 64                    .........d
+[ARP who-has 192.168.1.200 tell 192.168.1.100]`
+  );
+}
+
+(function init() {
+  const welcome = 
+    "Welcome to the Linux terminal...\n" +
+    "Task: Use tcpdump to capture packets on eth0 into capture.pcap, then display the file with cat.\n" +
+    "Type 'help' to see available commands.\n\n";
+  let i = 0;
+  const interval = setInterval(() => {
+    if (i < welcome.length) {
+      terminal.append(welcome.charAt(i));
+      i++;
+      scrollToBottom();
+    } else {
+      clearInterval(interval);
+      terminal.appendChild(document.createElement("br"));
+      createInputLine();
+    }
+  }, 15);
+})();
+</script>
+</body>
+</html>
