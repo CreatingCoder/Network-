@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Linux iptables ACL Simulation</title>
+  <style>
+    html, body {
+      margin: 0; padding: 0;
+      background: #000; color: #0f0;
+      font-family: "Courier New", monospace;
+      height: 100vh; overflow: hidden;
+    }
+    #terminal {
+      height: 100vh; overflow-y: auto;
+      padding: 10px; display: flex; flex-direction: column;
+      box-sizing: border-box; white-space: pre-wrap;
+    }
+    .line { display: flex; flex-wrap: wrap; align-items: center; }
+    .prefix { margin-right: 6px; }
+    .cmd-input {
+      background: none; border: none; color: #0f0;
+      font: inherit; outline: none; flex: 1;
+    }
+    .popup-top, .popup-center {
+      position: absolute; background: #222; color: #0f0;
+      border: 1px solid #0f0; border-radius: 6px;
+      padding: 10px 14px; z-index: 1000;
+    }
+    .popup-top { top: 16px; right: 16px; font-size: 14px; }
+    .popup-center {
+      display: none; top: 50%; left: 50%;
+      transform: translate(-50%, -50%); font-size: 18px;
+    }
+  </style>
+</head>
+<body>
+  <div class="popup-top" id="taskPopup">
+    Task: Block <b>203.0.113.5</b> from initiating SSH (port 22) using iptables.
+  </div>
+  <div class="popup-center" id="successPopup">✅ Rule added — SSH blocked for 203.0.113.5!</div>
+  <div id="terminal"></div>
+
+  <script>
+    // ----------- State -----------
+    const terminal = document.getElementById("terminal");
+    const taskPopup = document.getElementById("taskPopup");
+    const successPopup = document.getElementById("successPopup");
+
+    const PROMPT = "user@linux:~$";
+    const TARGET_IP = "203.0.113.5";
+
+    // Store rules in a simple structure
+    // Each rule: { chain, action, proto, dport, src }
+    const rules = [];
+    let success = false;
+
+    // History
+    const history = [];
+    let historyIndex = -1;
+
+    // ----------- UI Helpers -----------
+    function createInputLine() {
+      const line = document.createElement("div");
+      line.classList.add("line");
+
+      const prefix = document.createElement("span");
+      prefix.classList.add("prefix");
+      prefix.textContent = PROMPT;
+
+      const input = document.createElement("input");
+      input.classList.add("cmd-input");
+
+      line.appendChild(prefix);
+      line.appendChild(input);
+      terminal.appendChild(line);
+      input.focus();
+
+      input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          const cmd = input.value.trim();
+          input.disabled = true;
+          if (cmd.length) {
+            history.push(cmd);
+            historyIndex = history.length;
+          }
+          handleCommand(cmd);
+        } else if (e.key === "ArrowUp") {
+          if (historyIndex > 0) {
+            historyIndex--;
+            input.value = history[historyIndex] || "";
+            setTimeout(() => input.setSelectionRange(input.value.length, input.value.length), 0);
+          }
+        } else if (e.key === "ArrowDown") {
+          if (historyIndex < history.length - 1) {
+            historyIndex++;
+            input.value = history[historyIndex] || "";
+          } else {
+            historyIndex = history.length;
+            input.value = "";
+          }
+          setTimeout(() => input.setSelectionRange(input.value.length, input.value.length), 0);
+        }
+      });
+
+      scrollToBottom();
+    }
+
+    function printOutput(text) {
+      const out = document.createElement("div");
+      out.textContent = text;
+      terminal.appendChild(out);
+      scrollToBottom();
+    }
+
+    function scrollToBottom() {
+      terminal.scrollTop = terminal.scrollHeight;
+    }
+
+    // ----------- Command Handling -----------
+    function normalize(cmd) {
+      let c = cmd.trim();
+      if (c.toLowerCase().startsWith("sudo ")) c = c.slice(5);
+      // collapse multiple spaces
+      c = c.replace(/\s+/g, " ");
+      return c;
+    }
+
+    function handleCommand(rawCmd) {
+      const cmd = normalize(rawCmd);
+      const lower = cmd.toLowerCase();
+
+      if (!cmd) { createInputLine(); return; }
+
+      if (lower === "help") {
+        printOutput(getHelpText());
+        return createInputLine();
+      }
+
+      // Allow a simple ls to show "file exists" style – purely cosmetic
+      if (lower === "ls -l /etc/iptables/rules.v4" || lower === "ls -l /etc/iptables") {
+        printOutput("total 4\n-rw-r--r-- 1 root root 1024 Jan  1 12:00 rules.v4");
+        return createInputLine();
+      }
+
+      // iptables add rule variants we accept
+      // Examples:
+      // iptables -A INPUT -s 203.0.113.5 -p tcp --dport 22 -j DROP
+      // iptables -I INPUT 1 -s 203.0.113.5 -p tcp --dport 22 -j DROP
+      // accept with any order of -s/-p/--dport, but require chain INPUT, action DROP, dport 22, src TARGET_IP, proto tcp
+      if (lower.startsWith("iptables ")) {
+        if (lower.includes("-a input") || lower.match(/\b-?i\b input/)) {
+          const chain = "INPUT";
+          const action = lower.includes(" -j drop") ? "DROP" : (lower.includes(" -j reject") ? "REJECT" : "");
+          const protoMatch = lower.match(/-p\s+(\w+)/);
+          const dportMatch = lower.match(/--dport\s+(\d+)/);
+          const srcMatch = lower.match(/-s\s+([0-9.]+)/);
+
+          const proto = protoMatch ? protoMatch[1] : "";
+          const dport = dportMatch ? dportMatch[1] : "";
+          const src = srcMatch ? srcMatch[1] : "";
+
+          if (!action) {
+            printOutput("iptables: Missing or unsupported target (use -j DROP or -j REJECT).");
+            return createInputLine();
+          }
+          if (chain !== "INPUT") {
+            printOutput("iptables: This task requires using the INPUT chain.");
+            return createInputLine();
+          }
+          if (proto !== "tcp" || dport !== "22" || src !== TARGET_IP) {
+            printOutput("iptables: Rule doesn't match the task (need -s " + TARGET_IP + " -p tcp --dport 22 -j DROP/REJECT).");
+            return createInputLine();
+          }
+
+          // Add the rule
+          rules.push({ chain, action, proto, dport, src });
+          printOutput(""); // mimic quiet success
+          if (!success) {
+            success = true;
+            successPopup.style.display = "block";
+            taskPopup.style.display = "none";
+          }
+          return createInputLine();
+        }
+
+        // iptables -L or -S (listing)
+        if (lower === "iptables -l" || lower.startsWith("iptables -l ")) {
+          // default to INPUT list
+          return renderIptablesList("INPUT");
+        }
+        if (lower === "iptables -l input" || lower === "iptables -l input -n" || lower === "iptables -l input -n --line-numbers") {
+          return renderIptablesList("INPUT");
+        }
+        if (lower === "iptables -l input -n --line-numbers" || lower.includes("-l input")) {
+          return renderIptablesList("INPUT");
+        }
+        if (lower === "iptables -s" || lower.startsWith("iptables -s ")) {
+          return renderIptablesSave();
+        }
+
+        // iptables -L INPUT -n --line-numbers
+        if (lower.includes("iptables -l input") || lower.includes("iptables -l") || lower.includes("iptables -s")) {
+          // already handled above variants
+          return;
+        }
+
+        // Specific common list commands:
+        if (lower === "iptables -l input -n --line-numbers" || lower === "iptables -l input -n") {
+          return renderIptablesList("INPUT");
+        }
+        if (lower === "iptables -s") {
+          return renderIptablesSave();
+        }
+
+        // If reached here and starts with iptables, but not matched: provide hint
+        printOutput("Unknown/unsupported iptables syntax for this exercise. Try:\n  iptables -A INPUT -s " + TARGET_IP + " -p tcp --dport 22 -j DROP\n  iptables -L INPUT -n --line-numbers\n  iptables -S");
+        return createInputLine();
+      }
+
+      // Simple verification helper
+      if (lower === "iptables -l input -n --line-numbers" || lower === "iptables -l input -n") {
+        return renderIptablesList("INPUT");
+      }
+      if (lower === "iptables -s") {
+        return renderIptablesSave();
+      }
+      if (lower === "clear") {
+        terminal.innerHTML = "";
+        return createInputLine();
+      }
+      if (lower === "exit") {
+        printOutput("logout");
+        return createInputLine();
+      }
+
+      printOutput(`Unknown command: ${rawCmd}`);
+      createInputLine();
+    }
+
+    function getHelpText() {
+      return `Available commands:
+  iptables -A INPUT -s ${TARGET_IP} -p tcp --dport 22 -j DROP
+  iptables -I INPUT 1 -s ${TARGET_IP} -p tcp --dport 22 -j DROP
+  iptables -L INPUT -n --line-numbers
+  iptables -S
+  ls -l /etc/iptables
+  help
+  clear
+  exit
+
+Notes:
+- You may prefix with 'sudo'.
+- Commands are case-insensitive in this simulation.
+- Goal: Add a DROP rule blocking SSH (port 22) from ${TARGET_IP}.`;
+    }
+
+    function renderIptablesList(chainName) {
+      let out = `Chain ${chainName} (policy ACCEPT)\nnum  target     prot opt source          destination`;
+      if (rules.length === 0) {
+        printOutput(out);
+        return createInputLine();
+      }
+      let num = 1;
+      for (const r of rules) {
+        if (r.chain !== chainName) continue;
+        out += `\n${String(num).padEnd(4)}${r.action.padEnd(11)}${(r.proto||"all").padEnd(5)}   ${r.src.padEnd(15)}  0.0.0.0/0`;
+        num++;
+      }
+      printOutput(out);
+      createInputLine();
+    }
+
+    function renderIptablesSave() {
+      // Print as -S (rules in -A form)
+      if (rules.length === 0) {
+        printOutput("-P INPUT ACCEPT\n-P FORWARD ACCEPT\n-P OUTPUT ACCEPT");
+        return createInputLine();
+      }
+      let lines = ["-P INPUT ACCEPT", "-P FORWARD ACCEPT", "-P OUTPUT ACCEPT"];
+      for (const r of rules) {
+        lines.push(`-A ${r.chain} -s ${r.src} -p ${r.proto} --dport ${r.dport} -j ${r.action}`);
+      }
+      printOutput(lines.join("\n"));
+      createInputLine();
+    }
+
+    // ----------- Init -----------
+    (function init() {
+      const welcome = 
+        "Welcome to the Linux terminal...\n" +
+        "Task: Block 203.0.113.5 from initiating SSH (port 22) using iptables.\n" +
+        "Type 'help' to see available commands.\n\n";
+      let i = 0;
+      const interval = setInterval(() => {
+        if (i < welcome.length) {
+          terminal.append(welcome.charAt(i));
+          i++;
+          scrollToBottom();
+        } else {
+          clearInterval(interval);
+          terminal.appendChild(document.createElement("br"));
+          createInputLine();
+        }
+      }, 15);
+    })();
+  </script>
+</body>
+</html>
