@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>IPv6 Reserved Address Match</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #121212;
+      color: #f0f0f0;
+      padding: 20px;
+      margin: 0;
+      text-align: center;
+    }
+
+    h1 {
+      color: #00e6e6;
+    }
+
+    .game-container {
+      display: flex;
+      flex-direction: column;
+      gap: 30px;
+      align-items: center;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 20px;
+      width: 100%;
+      max-width: 800px;
+    }
+
+    .dropzone, .draggable {
+      border: 2px dashed #00e6e6;
+      border-radius: 8px;
+      padding: 12px;
+      min-height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 1rem;
+      text-align: center;
+    }
+
+    .dropzone {
+      background-color: #1e1e1e;
+    }
+
+    .draggable {
+      background-color: #263238;
+      cursor: grab;
+      touch-action: none;
+    }
+
+    .correct {
+      background-color: #2e7d32 !important;
+      color: #fff;
+    }
+
+    .wrong {
+      background-color: #c62828 !important;
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <h1>Match IPv6 Terms to Their Reserved Addresses</h1>
+  <p>Drag the IPv6 address block to the correct term.</p>
+
+  <div class="game-container">
+    <div class="grid" id="dropzones"></div>
+    <div class="grid" id="answers"></div>
+  </div>
+
+  <script>
+    const ipv6Data = [
+      { name: "Unspecified", addr: "::/128" },
+      { name: "Loopback", addr: "::1/128" },
+      { name: "Link-Local", addr: "FE80::/10" },
+      { name: "Unique Local", addr: "FC00::/7" },
+      { name: "Multicast", addr: "FF00::/8" },
+      { name: "Global Unicast", addr: "2000::/3" }
+    ];
+
+    function shuffle(array) {
+      return array.sort(() => Math.random() - 0.5);
+    }
+
+    const dropzonesContainer = document.getElementById("dropzones");
+    const answersContainer = document.getElementById("answers");
+
+    // Shuffle and create dropzones (terms)
+    shuffle([...ipv6Data]).forEach(item => {
+      const dz = document.createElement("div");
+      dz.className = "dropzone";
+      dz.dataset.answer = item.addr;
+      dz.textContent = item.name;
+      dropzonesContainer.appendChild(dz);
+    });
+
+    // Shuffle and create draggable answers (addresses)
+    shuffle([...ipv6Data]).forEach(item => {
+      const dr = document.createElement("div");
+      dr.className = "draggable";
+      dr.draggable = true;
+      dr.dataset.value = item.addr;
+      dr.textContent = item.addr;
+      answersContainer.appendChild(dr);
+    });
+
+    const draggables = document.querySelectorAll('.draggable');
+    const dropzones = document.querySelectorAll('.dropzone');
+
+    draggables.forEach(draggable => {
+      draggable.addEventListener('dragstart', e => {
+        e.dataTransfer.setData('text/plain', draggable.dataset.value);
+        e.dataTransfer.effectAllowed = "move";
+        draggable.classList.remove("wrong");
+      });
+    });
+
+    dropzones.forEach(zone => {
+      zone.addEventListener('dragover', e => {
+        e.preventDefault();
+        zone.style.borderColor = '#64ffda';
+      });
+
+      zone.addEventListener('dragleave', () => {
+        zone.style.borderColor = '#00e6e6';
+      });
+
+      zone.addEventListener('drop', e => {
+        e.preventDefault();
+        const droppedValue = e.dataTransfer.getData('text/plain');
+        const correctValue = zone.dataset.answer;
+        const draggedEl = [...draggables].find(el => el.dataset.value === droppedValue);
+
+        if (droppedValue === correctValue) {
+          zone.classList.add("correct");
+          zone.textContent = `${zone.textContent} ✓`;
+          draggedEl.style.visibility = "hidden";
+          zone.style.borderColor = '#2e7d32';
+        } else {
+          draggedEl.classList.add("wrong");
+          setTimeout(() => {
+            draggedEl.classList.remove("wrong");
+          }, 1000);
+        }
+
+        zone.style.borderColor = '#00e6e6';
+      });
+    });
+  </script>
+</body>
+</html>
