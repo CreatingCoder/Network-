@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Troubleshooting Match: Identify vs. Theory</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background-color: #121212;
+    color: #f0f0f0;
+    padding: 20px;
+    margin: 0;
+    text-align: center;
+  }
+  h1 { color: #00e6e6; margin-bottom: 10px; }
+  p  { color: #cfd8dc; margin: 0 0 20px; }
+
+  .game-container {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    align-items: center;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(260px, 1fr));
+    gap: 20px;
+    width: 100%;
+    max-width: 1100px;
+  }
+
+  .dropzone {
+    border: 2px dashed #00e6e6;
+    border-radius: 10px;
+    padding: 12px;
+    min-height: 120px;
+    background: #1e1e1e;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px; /* space between header and answers */
+    box-sizing: border-box;
+  }
+
+  .dropzone-header {
+    font-weight: 700;
+    font-size: 1rem;
+    text-align: center;
+    padding-bottom: 4px;
+    border-bottom: 1px solid #00e6e6;
+  }
+
+  .dropzone.correct { border-color: #2e7d32; }
+
+  .draggable {
+    background: #263238;
+    border: 2px solid transparent;
+    border-radius: 6px;
+    padding: 8px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    text-align: center;
+    cursor: grab;
+    touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
+    width: calc(100% - 10px); /* ensure space inside border */
+    margin: 5px auto; /* margin on all sides inside dropzone */
+    box-sizing: border-box;
+  }
+
+  .draggable.correct { background-color: #2e7d32 !important; color: #fff; }
+  .draggable.wrong   { background-color: #c62828 !important; color: #fff; }
+</style>
+</head>
+<body>
+  <h1>Match Substeps to the Correct Troubleshooting Step</h1>
+  <p>Drag each <strong>substep</strong> under <em>Identify the problem</em> or <em>Establish a theory of probable cause</em>.</p>
+
+  <div class="game-container">
+    <div class="grid" id="dropzones"></div>
+    <div class="grid" id="answers"></div>
+  </div>
+
+  <script>
+    const identifySubs = [
+      "Gathering information from log files and error messages",
+      "Questioning users",
+      "Identifying symptoms",
+      "Determining recent changes",
+      "Duplicating the problem",
+      "Approaching multiple problems one at a time",
+      "Narrowing the scope of the problem"
+    ];
+
+    const theorySubs = [
+      "Questioning the obvious to identify the cause of the problem",
+      "Considering multiple approaches, including top-to-bottom or bottom-to-top for layered technologies (such as networks)",
+      "Divide and conquer"
+    ];
+
+    const pairs = [
+      ...identifySubs.map(s => ({ step: "Identify the problem", sub: s })),
+      ...theorySubs.map(s => ({ step: "Establish a theory of probable cause", sub: s }))
+    ];
+
+    function shuffle(arr){ return arr.sort(() => Math.random() - 0.5); }
+
+    const dropzonesContainer = document.getElementById("dropzones");
+    const answersContainer   = document.getElementById("answers");
+
+    // Always keep Identify first, Theory second
+    const steps = ["Identify the problem", "Establish a theory of probable cause"];
+    steps.forEach(step => {
+      const dz = document.createElement("div");
+      dz.className = "dropzone";
+      dz.dataset.answer = step;
+
+      const header = document.createElement("div");
+      header.className = "dropzone-header";
+      header.textContent = step;
+      dz.appendChild(header);
+
+      dropzonesContainer.appendChild(dz);
+    });
+
+    // Create shuffled answers
+    const withIds = shuffle(pairs.map((p, i) => ({ ...p, id: "drag_"+i })));
+    withIds.forEach(p => {
+      const dr = document.createElement("div");
+      dr.className = "draggable";
+      dr.draggable = true;
+      dr.id = p.id;
+      dr.dataset.value = p.step;
+      dr.textContent = p.sub;
+      answersContainer.appendChild(dr);
+    });
+
+    const draggables = document.querySelectorAll(".draggable");
+    const dropzones  = document.querySelectorAll(".dropzone");
+
+    draggables.forEach(dr => {
+      dr.addEventListener("dragstart", e => {
+        const payload = { targetStep: dr.dataset.value, id: dr.id };
+        e.dataTransfer.setData("text/plain", JSON.stringify(payload));
+        e.dataTransfer.effectAllowed = "move";
+        dr.classList.remove("wrong");
+      });
+    });
+
+    dropzones.forEach(zone => {
+      zone.addEventListener("dragover", e => {
+        e.preventDefault();
+        zone.style.borderColor = "#64ffda";
+      });
+
+      zone.addEventListener("dragleave", () => {
+        zone.style.borderColor = "#00e6e6";
+      });
+
+      zone.addEventListener("drop", e => {
+        e.preventDefault();
+        zone.style.borderColor = "#00e6e6";
+
+        let payload;
+        try { payload = JSON.parse(e.dataTransfer.getData("text/plain") || "{}"); }
+        catch { payload = {}; }
+
+        const expected = zone.dataset.answer;
+        const dragged  = document.getElementById(payload.id);
+        if (!dragged) return;
+
+        if (payload.targetStep === expected) {
+          const clone = dragged.cloneNode(true);
+          clone.classList.add("correct");
+          clone.draggable = false;
+          clone.style.cursor = "default";
+          zone.appendChild(clone);
+          dragged.style.visibility = "hidden";
+          zone.classList.add("correct");
+        } else {
+          dragged.classList.add("wrong");
+          setTimeout(() => dragged.classList.remove("wrong"), 800);
+        }
+      });
+    });
+  </script>
+</body>
+</html>
