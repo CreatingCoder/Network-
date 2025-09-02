@@ -3,168 +3,167 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Network+ Study Hub</title>
+  <title>Network+ Study Hub — Domains</title>
   <style>
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      color: white;
-      overflow-x: hidden;
-      background: black;
-    }
+    /* === Base === */
+    *,*::before,*::after{box-sizing:border-box}
+    html,body{margin:0;padding:0}
+    body{font-family:'Segoe UI',system-ui,Arial,sans-serif;color:#eaf2ff;background:#000;overflow-x:hidden}
+    a{color:#8fd0ff;text-decoration:none}
+    a:hover{text-decoration:underline}
 
-    /* Futuristic animated background */
-    body::before {
-      content: '';
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: radial-gradient(ellipse at top left, #0fffc1, #300060, #000000);
-      background-size: 200% 200%;
-      animation: backgroundShift 20s ease infinite;
-      z-index: -2;
-    }
+    /* Futuristic animated background (kept from your original, toned slightly) */
+    body::before{content:"";position:fixed;inset:0;background:radial-gradient(ellipse at top left,#0fffc1,#300060,#000);background-size:200% 200%;animation:bgShift 24s ease infinite;z-index:-2;filter:saturate(115%)}
+    @keyframes bgShift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+    body::after{content:"";position:fixed;inset:0;background:linear-gradient(rgba(0,0,0,.55),rgba(0,0,0,.65));z-index:-1}
 
-    body::after {
-      content: '';
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: url('https://www.transparenttextures.com/patterns/stardust.png');
-      opacity: 0.04;
-      z-index: -1;
-    }
+    /* === Header & Nav Tabs === */
+    header{padding:28px 16px 14px;text-align:center;background:rgba(255,255,255,.05);backdrop-filter:blur(8px);border-bottom:1px solid rgba(255,255,255,.12)}
+    .title{font-size:clamp(24px,4vw,36px);font-weight:800;margin:0}
+    .subtitle{margin:6px 0 0;color:#c6d4e5}
 
-    @keyframes backgroundShift {
-      0% {background-position: 0% 50%;}
-      50% {background-position: 100% 50%;}
-      100% {background-position: 0% 50%;}
-    }
+    .tabs{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;max-width:1200px;margin:14px auto 0;padding:0 12px}
+    .tab{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:999px;color:#eaf2ff;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);backdrop-filter:blur(6px);transition:background .2s,border-color .2s,transform .2s}
+    .tab:hover{background:rgba(255,255,255,.12);transform:translateY(-1px)}
+    .tab.active{background:linear-gradient(135deg,#60a5fa,#22d3ee);color:#07131f;border-color:transparent}
 
-    header {
-      padding: 40px 20px;
-      text-align: center;
-      font-size: 2.5em;
-      font-weight: bold;
-      background: rgba(255, 255, 255, 0.05);
-      backdrop-filter: blur(8px);
-      border-bottom: 1px solid rgba(255,255,255,0.1);
-    }
+    /* === Sections === */
+    main{max-width:1200px;margin:0 auto;padding:20px 16px 40px}
+    section.domain{display:none}
+    section.domain.active{display:block}
 
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 20px;
-      padding: 40px 20px;
-      max-width: 1200px;
-      margin: auto;
-    }
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;margin-top:12px}
 
-    .card {
-      background: rgba(255, 255, 255, 0.07);
-      border: 1px solid rgba(255,255,255,0.1);
-      padding: 25px;
-      border-radius: 15px;
-      backdrop-filter: blur(6px);
-      box-shadow: 0 0 15px rgba(0,0,0,0.4);
-      transition: transform 0.3s ease, background 0.3s ease;
-    }
+    .card{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);padding:22px;border-radius:15px;backdrop-filter:blur(6px);box-shadow:0 0 14px rgba(0,0,0,.4);transition:transform .25s,background .25s,border-color .25s}
+    .card:hover{transform:translateY(-3px);background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.2)}
+    .card h2{font-size:1.1rem;margin:0 0 8px}
+    .card p{font-size:.95rem;line-height:1.55;margin:0}
 
-    .card:hover {
-      transform: scale(1.05);
-      background: rgba(255, 255, 255, 0.12);
-    }
+    /* === Footer === */
+    footer{text-align:center;padding:18px;font-size:.9rem;background:rgba(255,255,255,.05);border-top:1px solid rgba(255,255,255,.12)}
 
-    .card h2 {
-      font-size: 1.4em;
-      margin-bottom: 10px;
-    }
-
-    .card p {
-      font-size: 0.95em;
-      line-height: 1.5;
-    }
-
-    footer {
-      text-align: center;
-      padding: 20px;
-      font-size: 0.85em;
-      background: rgba(255,255,255,0.05);
-      border-top: 1px solid rgba(255,255,255,0.1);
-    }
-
-    a {
-      color: #8fd0ff;
-      text-decoration: none;
-    }
-
-    a:hover {
-      text-decoration: underline;
-    }
+    /* === Utilities === */
+    .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
   </style>
 </head>
 <body>
+  <header>
+    <h1 class="title">🌐 Network+ Study Hub</h1>
+    <p class="subtitle">Organized by official domains for N10‑009. Pick a tab to browse.</p>
+    <nav class="tabs" aria-label="Network+ domains">
+      <a href="#fundamentals" class="tab" data-target="fundamentals">1. Fundamentals</a>
+      <a href="#implementations" class="tab" data-target="implementations">2. Implementations</a>
+      <a href="#operations" class="tab" data-target="operations">3. Operations</a>
+      <a href="#security" class="tab" data-target="security">4. Security</a>
+      <a href="#troubleshooting" class="tab" data-target="troubleshooting">5. Troubleshooting</a>
+    </nav>
+  </header>
 
-<header>🌐 Network+ Study Hub</header>
+  <main>
+    <!-- ================= 1) FUNDAMENTALS ================= -->
+    <section id="fundamentals" class="domain" aria-labelledby="h-fundamentals">
+      <h2 id="h-fundamentals" class="sr-only">Network Fundamentals</h2>
+      <div class="grid">
+        <article class="card">
+          <h2>📡 Subnetting & CIDR</h2>
+          <p>Understand binary math, IP ranges, subnet masks, and CIDR notation. <br><br><a href="https://creatingcoder.github.io/Network-/CIDR_Subnetting/CIDR_Subnetting_main.html" target="_blank" rel="noopener">Practice CIDR Quiz →</a></p>
+        </article>
+        <article class="card">
+          <h2>🎯 Port Numbers</h2>
+          <p>Memorize key port numbers like 21 (FTP), 22 (SSH), 80 (HTTP), 443 (HTTPS), and more. <br><br><a href="https://creatingcoder.github.io/Network-/ports/ports_main.html" target="_blank" rel="noopener">Launch Ports Game →</a></p>
+        </article>
+        <article class="card">
+          <h2>📦 Ethernet Standards</h2>
+          <p>Compare Cat5/6/7/8 cables, speeds, distances, and shielding. <br><br><a href="https://creatingcoder.github.io/Network-/802.3/802.3_main.html" target="_blank" rel="noopener">Match Cable Specs →</a></p>
+        </article>
+        <article class="card">
+          <h2>🌍 IP Address Classes</h2>
+          <p>Class A‑E IP ranges, private IPs, and reserved addresses. <br><br><a href="https://creatingcoder.github.io/Network-/ip_classes/IP_main.html" target="_blank" rel="noopener">IP Class Game →</a></p>
+        </article>
+        <article class="card">
+          <h2>🧠 Wi‑Fi Standards</h2>
+          <p>Test knowledge of 802.11 PHYs (bands, speeds, ranges). <br><br><a href="https://creatingcoder.github.io/Network-/802.11/802.11_main.html" target="_blank" rel="noopener">802.11 Quiz →</a></p>
+        </article>
+      </div>
+    </section>
 
-<div class="grid">
-  <div class="card">
-    <h2>📡 Subnetting & CIDR</h2>
-    <p>Understand binary math, IP ranges, subnet masks, and CIDR notation. <br><br><a href="https://creatingcoder.github.io/Network-/CIDR_Subnetting/CIDR_Subnetting_main.html">Practice CIDR Quiz →</a></p>
-  </div>
+    <!-- ================= 2) IMPLEMENTATIONS ================= -->
+    <section id="implementations" class="domain" aria-labelledby="h-implementations">
+      <h2 id="h-implementations" class="sr-only">Network Implementations</h2>
+      <div class="grid">
+        <article class="card">
+          <h2>🚦 Routing & Switching</h2>
+          <p>Distance‑vector vs link‑state, VLANs, trunking, spanning tree concepts, and more. <br><br><a href="https://creatingcoder.github.io/Network-/Routing_Switching/Routing_Switching_main.html" target="_blank" rel="noopener">Routing Quiz →</a></p>
+        </article>
+        <article class="card">
+          <h2>👨‍💻 Cisco Practice</h2>
+          <p>Practice common Cisco CLI workflows and configs. <br><br><a href="https://creatingcoder.github.io/Network-/cisco/cisco_main.html" target="_blank" rel="noopener">Cisco Practice →</a></p>
+        </article>
+        <!-- Add more implementation labs here: NAT/PAT, DHCP relay, VPN types, QoS, etc. -->
+      </div>
+    </section>
 
-  
-  <div class="card">
-    <h2>🎯 Port Numbers</h2>
-    <p>Memorize key port numbers like 21 (FTP), 22 (SSH), 80 (HTTP), 443 (HTTPS), and more. <br><br><a href="https://creatingcoder.github.io/Network-/ports/ports_main.html">Launch Ports Game →</a></p>
-  </div>
+    <!-- ================= 3) OPERATIONS ================= -->
+    <section id="operations" class="domain" aria-labelledby="h-operations">
+      <h2 id="h-operations" class="sr-only">Network Operations</h2>
+      <div class="grid">
+        <!-- Placeholder examples — add your own links/tools for SNMP/Syslog/Docs/Backups -->
+        <article class="card">
+          <h2>📊 Monitoring & Telemetry</h2>
+          <p>SNMP, Syslog, NetFlow/sFlow, baselines, capacity planning. <br><br><em>Drop your dashboards or notes here.</em></p>
+        </article>
+        <article class="card">
+          <h2>🗂️ Documentation & Backups</h2>
+          <p>Runbooks, network maps, asset inventory, configuration backups. <br><br><em>Link to your docs or templates.</em></p>
+        </article>
+      </div>
+    </section>
 
-  <div class="card">
-    <h2>🧰 Tools & Commands</h2>
-    <p>Review commands like <code>tracert</code>, <code>ping</code>, <code>ipconfig</code>, and diagnostic tools. <br><br><a href="https://creatingcoder.github.io/Network-/tools_commands/tools_commands_main.html">Test Tools Knowledge →</a></p>
-  </div>
+    <!-- ================= 4) SECURITY ================= -->
+    <section id="security" class="domain" aria-labelledby="h-security">
+      <h2 id="h-security" class="sr-only">Network Security</h2>
+      <div class="grid">
+        <article class="card">
+          <h2>🔐 Security Protocols</h2>
+          <p>Encryption types, VPN protocols, firewalls/ACLs, NAC/802.1X. <br><br><em>Add your security practice links here.</em></p>
+        </article>
+      </div>
+    </section>
 
-  <div class="card">
-    <h2>📦 Ethernet Standards</h2>
-    <p>Compare Cat5/6/7/8 cables, speeds, distances, and shielding. <br><br><a href="https://creatingcoder.github.io/Network-/802.3/802.3_main.html">Match Cable Specs →</a></p>
-  </div>
+    <!-- ================= 5) TROUBLESHOOTING ================= -->
+    <section id="troubleshooting" class="domain" aria-labelledby="h-troubleshooting">
+      <h2 id="h-troubleshooting" class="sr-only">Network Troubleshooting</h2>
+      <div class="grid">
+        <article class="card">
+          <h2>🧰 Tools & Commands</h2>
+          <p>Review <code>tracert</code>, <code>ping</code>, <code>ipconfig</code>, and diagnostics. <br><br><a href="https://creatingcoder.github.io/Network-/tools_commands/tools_commands_main.html" target="_blank" rel="noopener">Test Tools Knowledge →</a></p>
+        </article>
+        <article class="card">
+          <h2>✍🏼 Performance‑Based Questions</h2>
+          <p>Practice PBQs mirroring exam‑style scenarios. <br><br><a href="https://creatingcoder.github.io/Network-/PBQs/PBQ_main.html" target="_blank" rel="noopener">PBQs →</a></p>
+        </article>
+        <!-- Add common symptoms & fixes, flowcharts, and log analysis exercises here. -->
+      </div>
+    </section>
+  </main>
 
-  <div class="card">
-    <h2>🧠 Wifi Standards</h2>
-    <p>Test your knowledge of wireless networking by matching key 802.11 standards with their frequencies, speeds, and ranges. <br><br><a href="https://creatingcoder.github.io/Network-/802.11/802.11_main.html">802.11 Quiz →</a></p>
-  </div>
+  <footer>
+    Created for Network+ (N10‑009) preparation — Stay sharp, stay certified!
+  </footer>
 
-  <!--<div class="card">
-    <h2>🔐 Security Protocols</h2>
-    <p>Identify encryption types, VPN protocols, firewall settings, and security concepts. <br><br><a href="#">Security Practice Set →</a></p>
-  </div> --> 
-
-  <div class="card">
-    <h2>✍🏼 Performance Based Questions</h2>
-    <p> Practice various PBQs for the Network+ <br><br><a href="https://creatingcoder.github.io/Network-/PBQs/PBQ_main.html">PBQs →</a></p>
-  </div>
-
-  <div class="card">
-    <h2>🚦 Routing & Switching</h2>
-    <p>Learn distance vector vs link-state protocols, VLANs, and switching logic. <br><br><a href="https://creatingcoder.github.io/Network-/Routing_Switching/Routing_Switching_main.html">Routing Quiz →</a></p>
-  </div>
-
-  <div class="card">
-    <h2>🌍 IP Address Classes</h2>
-    <p>Class A-E IP ranges, private IPs, and reserved addresses. <br><br><a href="https://creatingcoder.github.io/Network-/ip_classes/IP_main.html">IP Class Game →</a></p>
-  </div>
-
-  <div class="card">
-    <h2>👨‍💻 Cisco Practice</h2>
-    <p>Practicing Cisco commands  <br><br><a href="https://creatingcoder.github.io/Network-/cisco/cisco_main.html">IP Class Game →</a></p>
-  </div>
-
-
-
-  
-</div>
-
-<footer>
-  Created for Network+ (N10-009) preparation — Stay sharp, stay certified!
-</footer>
-
+  <script>
+    // Simple tab router — shows the section that matches the hash.
+    const sections=[...document.querySelectorAll('section.domain')];
+    const tabs=[...document.querySelectorAll('.tab')];
+    function activate(id){
+      const target=(id||'').replace('#','')||'fundamentals';
+      sections.forEach(s=>s.classList.toggle('active',s.id===target));
+      tabs.forEach(t=>{
+        const on=t.dataset.target===target; t.classList.toggle('active',on); t.setAttribute('aria-current',on?'page':'false');
+      });
+    }
+    window.addEventListener('hashchange',()=>activate(location.hash));
+    activate(location.hash);
+  </script>
 </body>
 </html>
