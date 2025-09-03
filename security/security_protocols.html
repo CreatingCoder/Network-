@@ -1,0 +1,145 @@
+<!-- Quiz 2: Secure Network Protocols (12 Questions - Realistic Wording) -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Network+ Secure Protocols Quiz</title>
+  <style>
+    body { background: #101820; color: #fff; font-family: Arial; max-width: 800px; margin: auto; padding: 20px; }
+    h1 { color: #00e6e6; text-align: center; }
+    .question { background: #1a1f2b; padding: 15px; margin-bottom: 20px; border-radius: 8px; }
+    button { display: block; width: 100%; margin: 5px 0; background: #293445; border: none; padding: 10px; color: white; border-radius: 6px; cursor: pointer; }
+    .correct { background: #2e7d32 !important; }
+    .wrong { background: #c62828 !important; }
+    #score { font-size: 18px; text-align: center; color: #00ffcc; margin-top: 20px; }
+  </style>
+</head>
+<body>
+
+<h1>Network+ Quiz: Secure Protocols</h1>
+<div id="quiz"></div>
+<div id="score"></div>
+
+<script>
+const questions = [
+  { q: "Which protocol encrypts traffic between a web browser and a web server over port 443?", a: "HTTPS (Hypertext Transfer Protocol Secure), which uses TLS to encrypt HTTP traffic.", c: [
+    "HTTPS (Hypertext Transfer Protocol Secure), which uses TLS to encrypt HTTP traffic.",
+    "HTTP over port 80 with base64 encoding only.",
+    "FTP over TLS using port 21 for secured file transfer.",
+    "DNS with secure zone transfers on port 443."
+  ]},
+  { q: "What is the primary function of Secure Shell (SSH)?", a: "To provide encrypted command-line access to a remote device or server over an unsecured network.", c: [
+    "To provide encrypted command-line access to a remote device or server over an unsecured network.",
+    "To synchronize file systems across multiple virtual machines.",
+    "To provide GUI access to virtual desktops remotely.",
+    "To configure firewalls via web-based portals only."
+  ]},
+  { q: "Which protocol is a secure alternative to Telnet for remote administration?", a: "SSH (Secure Shell), which replaces Telnet and uses port 22 for secure encrypted connections.", c: [
+    "SSH (Secure Shell), which replaces Telnet and uses port 22 for secure encrypted connections.",
+    "SMTP (Simple Mail Transfer Protocol) on port 25 for admin email alerts.",
+    "IMAPS over port 993 for remote CLI shell.",
+    "SCP over port 21 for unencrypted transfers."
+  ]},
+  { q: "What port does Secure FTP (FTPS) commonly use when operating over implicit TLS?", a: "Port 990 is used by FTPS when TLS encryption is automatically initiated during connection setup.", c: [
+    "Port 990 is used by FTPS when TLS encryption is automatically initiated during connection setup.",
+    "Port 20 with anonymous user permissions only.",
+    "Port 443, which is reserved for HTTPS traffic only.",
+    "Port 53 as defined by legacy DNS rules."
+  ]},
+  { q: "Which email protocol offers encrypted communication using port 993?", a: "IMAPS (Internet Message Access Protocol Secure) provides secure retrieval of emails over port 993.", c: [
+    "IMAPS (Internet Message Access Protocol Secure) provides secure retrieval of emails over port 993.",
+    "POP3 with SSL over port 110.",
+    "SMTP encrypted relay over port 143.",
+    "FTP TLS using port 22."
+  ]},
+  { q: "What is the purpose of SFTP?", a: "SFTP (SSH File Transfer Protocol) securely transfers files using the SSH protocol over port 22.", c: [
+    "SFTP (SSH File Transfer Protocol) securely transfers files using the SSH protocol over port 22.",
+    "It tunnels HTTP through email proxies on port 465.",
+    "A browser-based VPN tunnel protocol for HTTPS.",
+    "Transfers files over Telnet with encoded headers."
+  ]},
+  { q: "Which port does SNMPv3 use by default, and what key advantage does it offer?", a: "It uses UDP port 161 and adds encryption and authentication over previous SNMP versions.", c: [
+    "It uses UDP port 161 and adds encryption and authentication over previous SNMP versions.",
+    "It uses TCP 443 and secures only email alerts.",
+    "It operates on port 69 and lacks user access control.",
+    "SNMPv3 is a GUI-based protocol for threat monitoring."
+  ]},
+  { q: "Which secure protocol is used to synchronize time between devices on a network?", a: "NTP (Network Time Protocol) with authentication can securely synchronize system clocks over port 123.", c: [
+    "NTP (Network Time Protocol) with authentication can securely synchronize system clocks over port 123.",
+    "SCP over port 137.",
+    "IMAPS for timestamp validation.",
+    "HTTPS with time headers over port 443."
+  ]},
+  { q: "Which protocol uses port 636 and adds TLS encryption to directory access?", a: "LDAPS (Lightweight Directory Access Protocol Secure) operates on port 636 with encryption.", c: [
+    "LDAPS (Lightweight Directory Access Protocol Secure) operates on port 636 with encryption.",
+    "LDAPv2 using TCP port 25.",
+    "NFS encrypted version using port 389.",
+    "SNMP MIB tunnel over port 161."
+  ]},
+  { q: "Which protocol provides secure resolution of domain names?", a: "DNSSEC (Domain Name System Security Extensions) protects integrity of DNS records.", c: [
+    "DNSSEC (Domain Name System Security Extensions) protects integrity of DNS records.",
+    "SMTP with MX record hashing.",
+    "POP3 with TLD obfuscation.",
+    "SFTP zone transfers through SSH."
+  ]},
+  { q: "Which protocol would best protect administrator credentials during a switch CLI session?", a: "SSH should be used instead of Telnet to prevent credentials from being transmitted in plaintext.", c: [
+    "SSH should be used instead of Telnet to prevent credentials from being transmitted in plaintext.",
+    "SNMPv1 over UDP for speed.",
+    "HTTP access via web GUI.",
+    "Plaintext FTP access with hashed password transmission."
+  ]},
+  { q: "What is the primary security benefit of using TLS over SSL?", a: "TLS is a newer, more secure protocol that offers improved encryption algorithms and handshake security.", c: [
+    "TLS is a newer, more secure protocol that offers improved encryption algorithms and handshake security.",
+    "TLS is backwards-compatible with FTP.",
+    "SSL has longer key lengths and runs on UDP.",
+    "TLS disables all browser caching."
+  ]}
+];
+
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+}
+
+let correct = 0;
+
+function renderQuiz() {
+  shuffle(questions);
+  questions.forEach((q, i) => {
+    const div = document.createElement("div");
+    div.className = "question";
+    const h3 = document.createElement("h3");
+    h3.textContent = `${i + 1}. ${q.q}`;
+    div.appendChild(h3);
+    const choices = [...q.c];
+    shuffle(choices);
+    choices.forEach(opt => {
+      const btn = document.createElement("button");
+      btn.textContent = opt;
+      btn.onclick = () => {
+        if (btn.parentElement.classList.contains("answered")) return;
+        btn.parentElement.classList.add("answered");
+        if (opt === q.a) {
+          btn.classList.add("correct");
+          correct++;
+        } else {
+          btn.classList.add("wrong");
+          [...btn.parentElement.children].find(b => b.textContent === q.a).classList.add("correct");
+        }
+        [...btn.parentElement.children].forEach(b => b.disabled = true);
+        if (document.querySelectorAll(".answered").length === questions.length) {
+          document.getElementById("score").textContent = `✅ You got ${correct} out of ${questions.length} correct.`;
+        }
+      };
+      div.appendChild(btn);
+    });
+    document.getElementById("quiz").appendChild(div);
+  });
+}
+renderQuiz();
+</script>
+
+</body>
+</html>
