@@ -1,0 +1,145 @@
+<!-- Quiz 3: Authentication and Access Control (12 Questions - Realistic Wording) -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Network+ Authentication & Access Control Quiz</title>
+  <style>
+    body { background: #101820; color: #fff; font-family: Arial; max-width: 800px; margin: auto; padding: 20px; }
+    h1 { color: #00e6e6; text-align: center; }
+    .question { background: #1a1f2b; padding: 15px; margin-bottom: 20px; border-radius: 8px; }
+    button { display: block; width: 100%; margin: 5px 0; background: #293445; border: none; padding: 10px; color: white; border-radius: 6px; cursor: pointer; }
+    .correct { background: #2e7d32 !important; }
+    .wrong { background: #c62828 !important; }
+    #score { font-size: 18px; text-align: center; color: #00ffcc; margin-top: 20px; }
+  </style>
+</head>
+<body>
+
+<h1>Network+ Quiz: Authentication & Access Control</h1>
+<div id="quiz"></div>
+<div id="score"></div>
+
+<script>
+const questions = [
+  { q: "What is the purpose of multifactor authentication (MFA)?", a: "To increase security by requiring two or more distinct verification factors from different categories.", c: [
+    "To increase security by requiring two or more distinct verification factors from different categories.",
+    "To limit users to one password reset per day.",
+    "To prevent session hijacking via VPN split tunneling.",
+    "To allow automated scripts to log in faster."
+  ]},
+  { q: "What is the primary function of a RADIUS server in a network?", a: "To authenticate and authorize remote users and devices via centralized AAA services.", c: [
+    "To authenticate and authorize remote users and devices via centralized AAA services.",
+    "To distribute DNS responses for encrypted sessions.",
+    "To perform man-in-the-middle detection over VPN.",
+    "To send multicast group traffic to routers."
+  ]},
+  { q: "Which access control model assigns permissions based on roles within an organization?", a: "Role-Based Access Control (RBAC) grants rights based on the user’s job function.", c: [
+    "Role-Based Access Control (RBAC) grants rights based on the user’s job function.",
+    "Mandatory Access Control (MAC) allows users to change their clearance.",
+    "Discretionary Access Control (DAC) sets roles per password policy.",
+    "Attribute-Based Access Control (ABAC) creates VLANs automatically."
+  ]},
+  { q: "Which authentication method uses a physical item such as a smart card or key fob?", a: "Something you have — such as a token or smart card — is a common factor in multifactor authentication.", c: [
+    "Something you have — such as a token or smart card — is a common factor in multifactor authentication.",
+    "Something you know, like your username.",
+    "Something you are, like your browsing history.",
+    "Something you do, like typing with a specific cadence."
+  ]},
+  { q: "What does the 'principle of least privilege' state?", a: "Users should be given only the minimum access necessary to perform their duties.", c: [
+    "Users should be given only the minimum access necessary to perform their duties.",
+    "All users should have elevated administrative rights for productivity.",
+    "Guest accounts must be enabled at all times for visibility.",
+    "Internal users must use default credentials to simplify help desk support."
+  ]},
+  { q: "What distinguishes TACACS+ from RADIUS in terms of authentication?", a: "TACACS+ encrypts the entire packet including headers, offering more secure communication.", c: [
+    "TACACS+ encrypts the entire packet including headers, offering more secure communication.",
+    "RADIUS allows role-based routing using LDAP.",
+    "TACACS+ does not support password management.",
+    "RADIUS requires SSH tunnels for packet delivery."
+  ]},
+  { q: "Which of the following is a biometric factor for authentication?", a: "A fingerprint scan is an example of a biometric factor based on physical characteristics.", c: [
+    "A fingerprint scan is an example of a biometric factor based on physical characteristics.",
+    "A PIN stored in a password manager.",
+    "A smart card used for physical door access.",
+    "An IP address associated with a geofence."
+  ]},
+  { q: "What type of authentication is commonly used with 802.1X network access control?", a: "Extensible Authentication Protocol (EAP) is widely used in 802.1X implementations for port-based control.", c: [
+    "Extensible Authentication Protocol (EAP) is widely used in 802.1X implementations for port-based control.",
+    "Password-based login without encryption.",
+    "LDAP zone forwarding with token reuse.",
+    "TLSv1 over FTP for remote wipe."
+  ]},
+  { q: "Which of the following best describes single sign-on (SSO)?", a: "SSO allows users to authenticate once and gain access to multiple systems or services without reauthenticating.", c: [
+    "SSO allows users to authenticate once and gain access to multiple systems or services without reauthenticating.",
+    "SSO is a VPN protocol used for wireless isolation.",
+    "SSO prevents password reuse across browsers.",
+    "SSO encrypts user credentials for every website individually."
+  ]},
+  { q: "What does the term 'authorization' refer to in the context of access control?", a: "The process of determining what resources a user or system is allowed to access after authentication.", c: [
+    "The process of determining what resources a user or system is allowed to access after authentication.",
+    "The assignment of biometric tokens for login.",
+    "The method used to validate MAC addresses on Layer 2.",
+    "The routing rule used for 802.11 authentication."
+  ]},
+  { q: "Which authentication protocol is often used with Microsoft Active Directory and uses ticketing?", a: "Kerberos is a secure protocol that authenticates users and issues time-sensitive tickets.", c: [
+    "Kerberos is a secure protocol that authenticates users and issues time-sensitive tickets.",
+    "LDAP stores hashed passwords on printers.",
+    "RADIUS encrypts the web traffic using TLSv1.1.",
+    "802.1X creates DNS queries for smart cards."
+  ]},
+  { q: "What is a common risk of using shared accounts across multiple users?", a: "Accountability is reduced, making it difficult to track changes or malicious behavior to a specific user.", c: [
+    "Accountability is reduced, making it difficult to track changes or malicious behavior to a specific user.",
+    "Passwords are reset more frequently with shared access.",
+    "It improves logging accuracy by consolidating usernames.",
+    "Shared accounts automatically use multifactor authentication."
+  ]}
+];
+
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+}
+
+let correct = 0;
+
+function renderQuiz() {
+  shuffle(questions);
+  questions.forEach((q, i) => {
+    const div = document.createElement("div");
+    div.className = "question";
+    const h3 = document.createElement("h3");
+    h3.textContent = `${i + 1}. ${q.q}`;
+    div.appendChild(h3);
+    const choices = [...q.c];
+    shuffle(choices);
+    choices.forEach(opt => {
+      const btn = document.createElement("button");
+      btn.textContent = opt;
+      btn.onclick = () => {
+        if (btn.parentElement.classList.contains("answered")) return;
+        btn.parentElement.classList.add("answered");
+        if (opt === q.a) {
+          btn.classList.add("correct");
+          correct++;
+        } else {
+          btn.classList.add("wrong");
+          [...btn.parentElement.children].find(b => b.textContent === q.a).classList.add("correct");
+        }
+        [...btn.parentElement.children].forEach(b => b.disabled = true);
+        if (document.querySelectorAll(".answered").length === questions.length) {
+          document.getElementById("score").textContent = `✅ You got ${correct} out of ${questions.length} correct.`;
+        }
+      };
+      div.appendChild(btn);
+    });
+    document.getElementById("quiz").appendChild(div);
+  });
+}
+renderQuiz();
+</script>
+
+</body>
+</html>
