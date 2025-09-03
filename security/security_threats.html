@@ -1,0 +1,145 @@
+<!-- Quiz 1: Network Security Threats (12 Questions - Enhanced Wording) -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Network+ Security Threats Quiz</title>
+  <style>
+    body { background: #101820; color: #fff; font-family: Arial; max-width: 800px; margin: auto; padding: 20px; }
+    h1 { color: #00e6e6; text-align: center; }
+    .question { background: #1a1f2b; padding: 15px; margin-bottom: 20px; border-radius: 8px; }
+    button { display: block; width: 100%; margin: 5px 0; background: #293445; border: none; padding: 10px; color: white; border-radius: 6px; cursor: pointer; }
+    .correct { background: #2e7d32 !important; }
+    .wrong { background: #c62828 !important; }
+    #score { font-size: 18px; text-align: center; color: #00ffcc; margin-top: 20px; }
+  </style>
+</head>
+<body>
+
+<h1>Network+ Quiz: Security Threats</h1>
+<div id="quiz"></div>
+<div id="score"></div>
+
+<script>
+const questions = [
+  { q: "What best describes the nature of a phishing attack in a corporate environment?", a: "An email-based deception technique used to trick recipients into revealing personal or sensitive credentials.", c: [
+    "An email-based deception technique used to trick recipients into revealing personal or sensitive credentials.",
+    "A brute-force method used to guess passwords repeatedly until successful.",
+    "Malicious DNS manipulation conducted remotely over network routers.",
+    "Unauthorized port scanning across internal firewalls."
+  ]},
+  { q: "Which of the following describes a Denial-of-Service (DoS) attack?", a: "A method of overwhelming a system or network service to render it inaccessible to legitimate users.", c: [
+    "Using malware to steal passwords from memory.",
+    "A method of overwhelming a system or network service to render it inaccessible to legitimate users.",
+    "Encrypting all files in a system until ransom is paid.",
+    "Redirecting web traffic to a malicious server."
+  ]},
+  { q: "What is spoofing in the context of cybersecurity threats?", a: "Masquerading as another device or user in order to gain unauthorized access or information.", c: [
+    "Intercepting and altering data between two systems.",
+    "Creating rogue wireless access points on campus.",
+    "Masquerading as another device or user in order to gain unauthorized access or information.",
+    "Collecting logs from firewall and IDS systems."
+  ]},
+  { q: "What is the primary technique used in a brute-force password attack?", a: "The automated and repeated guessing of login credentials until access is granted.", c: [
+    "Sniffing traffic over an open wireless network.",
+    "The automated and repeated guessing of login credentials until access is granted.",
+    "Installing rootkits on endpoint devices.",
+    "Exploiting outdated SSL certificates."
+  ]},
+  { q: "How does a social engineering attack typically succeed?", a: "By manipulating a target into voluntarily giving up confidential or restricted information.", c: [
+    "By exploiting vulnerabilities in SSL encryption.",
+    "By manipulating a target into voluntarily giving up confidential or restricted information.",
+    "By brute-forcing Wi-Fi network passwords.",
+    "By cracking hashing algorithms in transit."
+  ]},
+  { q: "What is ransomware designed to do after infecting a system?", a: "Encrypt the victim's data and demand a payment for the decryption key.", c: [
+    "Overwrite system BIOS to prevent booting.",
+    "Encrypt the victim's data and demand a payment for the decryption key.",
+    "Record keystrokes for later review.",
+    "Exfiltrate logs from security devices."
+  ]},
+  { q: "Which scenario best illustrates a tailgating security breach?", a: "An unauthorized person entering a secured facility by closely following an authorized employee without proper authentication.", c: [
+    "Deploying rogue DHCP servers to confuse hosts.",
+    "An unauthorized person entering a secured facility by closely following an authorized employee without proper authentication.",
+    "Injecting SQL commands into input fields.",
+    "Bypassing wireless encryption using rainbow tables."
+  ]},
+  { q: "What defines a logic bomb in malware terms?", a: "Malicious code that remains dormant until triggered by a specific condition such as a date or event.", c: [
+    "An exploit targeting out-of-band management interfaces.",
+    "Malicious code that remains dormant until triggered by a specific condition such as a date or event.",
+    "A brute-force attack embedded in firmware.",
+    "A continuously active surveillance app."
+  ]},
+  { q: "What distinguishes an insider threat from other forms of attack?", a: "It originates from individuals with legitimate access to the system, such as employees or contractors.", c: [
+    "It is typically executed using botnets or external malware.",
+    "It originates from individuals with legitimate access to the system, such as employees or contractors.",
+    "It only affects public IP services.",
+    "It uses open-source scanning tools externally."
+  ]},
+  { q: "What is the purpose of ARP poisoning on a local network?", a: "To associate the attacker’s MAC address with the IP address of another host, thereby intercepting traffic.", c: [
+    "To flood the local subnet with fake packets.",
+    "To associate the attacker’s MAC address with the IP address of another host, thereby intercepting traffic.",
+    "To remotely execute code on a mail server.",
+    "To corrupt DNS records in external resolvers."
+  ]},
+  { q: "What is a zero-day exploit?", a: "A vulnerability that is exploited before the vendor becomes aware and releases a fix.", c: [
+    "A deprecated feature still in use by older apps.",
+    "A vulnerability that is exploited before the vendor becomes aware and releases a fix.",
+    "An internal tool improperly secured on the DMZ.",
+    "A known bug used only for testing malware signatures."
+  ]},
+  { q: "How does a man-in-the-middle (MITM) attack function?", a: "It secretly intercepts and possibly alters communication between two parties who believe they are directly communicating with each other.", c: [
+    "It replicates login portals to capture credentials.",
+    "It secretly intercepts and possibly alters communication between two parties who believe they are directly communicating with each other.",
+    "It sends spam emails from compromised accounts.",
+    "It performs hash cracking against Kerberos."
+  ]}
+];
+
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+}
+
+let correct = 0;
+
+function renderQuiz() {
+  shuffle(questions);
+  questions.forEach((q, i) => {
+    const div = document.createElement("div");
+    div.className = "question";
+    const h3 = document.createElement("h3");
+    h3.textContent = `${i + 1}. ${q.q}`;
+    div.appendChild(h3);
+    const choices = [...q.c];
+    shuffle(choices);
+    choices.forEach(opt => {
+      const btn = document.createElement("button");
+      btn.textContent = opt;
+      btn.onclick = () => {
+        if (btn.parentElement.classList.contains("answered")) return;
+        btn.parentElement.classList.add("answered");
+        if (opt === q.a) {
+          btn.classList.add("correct");
+          correct++;
+        } else {
+          btn.classList.add("wrong");
+          [...btn.parentElement.children].find(b => b.textContent === q.a).classList.add("correct");
+        }
+        [...btn.parentElement.children].forEach(b => b.disabled = true);
+        if (document.querySelectorAll(".answered").length === questions.length) {
+          document.getElementById("score").textContent = `✅ You got ${correct} out of ${questions.length} correct.`;
+        }
+      };
+      div.appendChild(btn);
+    });
+    document.getElementById("quiz").appendChild(div);
+  });
+}
+renderQuiz();
+</script>
+
+</body>
+</html>
