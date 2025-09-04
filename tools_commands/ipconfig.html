@@ -27,14 +27,7 @@
     .cmd-input {
       background: none; border: none; color: #0f0;
       font-family: inherit; font-size: 1em; outline: none; flex: 1;
-    }
-    .cursor {
-      width: 10px; height: 1em;
-      background-color: #0f0;
-      animation: blink 1s step-start infinite;
-    }
-    @keyframes blink {
-      50% { background-color: transparent; }
+      caret-color: #0f0; /* neon caret */
     }
     .popup-top, .popup-center {
       position: absolute;
@@ -66,31 +59,94 @@
     const successPopup = document.getElementById("successPopup");
     let completed = false;
 
+    let commandHistory = [];
+    let historyIndex = -1;
+
     function createInputLine() {
       const line = document.createElement("div");
       line.classList.add("line");
+
       const prefix = document.createElement("span");
       prefix.classList.add("prefix");
       prefix.textContent = ">";
+
       const input = document.createElement("input");
       input.classList.add("cmd-input");
-      const cursor = document.createElement("span");
-      cursor.classList.add("cursor");
+      input.type = "text";
 
       line.appendChild(prefix);
       line.appendChild(input);
-      line.appendChild(cursor);
       terminal.appendChild(line);
       input.focus();
 
       input.addEventListener("keydown", function(e) {
+        // Execute
         if (e.key === "Enter") {
-          cursor.remove();
+          const cmd = input.value.trim();
           input.disabled = true;
-          handleCommand(input.value.trim());
+          if (cmd) {
+            commandHistory.push(cmd);
+            historyIndex = commandHistory.length;
+          }
+          handleCommand(cmd);
+          return;
+        }
+
+        // History navigation
+        if (e.key === "ArrowUp") {
+          if (historyIndex > 0) {
+            historyIndex--;
+            input.value = commandHistory[historyIndex] || "";
+            requestAnimationFrame(() => input.setSelectionRange(input.value.length, input.value.length));
+          }
+          e.preventDefault();
+          return;
+        }
+        if (e.key === "ArrowDown") {
+          if (historyIndex < commandHistory.length - 1) {
+            historyIndex++;
+            input.value = commandHistory[historyIndex] || "";
+          } else {
+            historyIndex = commandHistory.length;
+            input.value = "";
+          }
+          requestAnimationFrame(() => input.setSelectionRange(input.value.length, input.value.length));
+          e.preventDefault();
+          return;
+        }
+
+        // Word-jump navigation (Alt+Arrow)
+        if (e.altKey && e.key === "ArrowLeft") {
+          moveCaretWord(input, -1);
+          e.preventDefault();
+          return;
+        }
+        if (e.altKey && e.key === "ArrowRight") {
+          moveCaretWord(input, 1);
+          e.preventDefault();
+          return;
         }
       });
+
       scrollToBottom();
+    }
+
+    function moveCaretWord(input, dir) {
+      const val = input.value;
+      let pos = input.selectionStart;
+      if (dir < 0) {
+        if (pos === 0) return;
+        let i = pos;
+        while (i > 0 && val[i - 1] === " ") i--;
+        while (i > 0 && val[i - 1] !== " ") i--;
+        input.setSelectionRange(i, i);
+      } else {
+        if (pos >= val.length) return;
+        let i = pos;
+        while (i < val.length && val[i] === " ") i++;
+        while (i < val.length && val[i] !== " ") i++;
+        input.setSelectionRange(i, i);
+      }
     }
 
     function handleCommand(cmd) {
