@@ -44,18 +44,7 @@
       font-size: 1em;
       outline: none;
       flex: 1;
-    }
-
-    .cursor {
-      display: inline-block;
-      width: 10px;
-      height: 1em;
-      background-color: #00ff00;
-      animation: blink 1s step-start infinite;
-    }
-
-    @keyframes blink {
-      50% { background-color: transparent; }
+      caret-color: #00ff00; /* neon caret */
     }
 
     .popup-top {
@@ -104,6 +93,9 @@
       help: "Available commands:\nhelp - Show this help\nclear - Clear the terminal\necho [text] - Print text\nping [ip] - Simulate a ping",
     };
 
+    let commandHistory = [];
+    let historyIndex = -1;
+
     function createInputLine() {
       const line = document.createElement("div");
       line.classList.add("line");
@@ -117,12 +109,8 @@
       input.classList.add("cmd-input");
       input.autofocus = true;
 
-      const cursor = document.createElement("span");
-      cursor.classList.add("cursor");
-
       line.appendChild(prefix);
       line.appendChild(input);
-      line.appendChild(cursor);
       terminal.appendChild(line);
 
       input.focus();
@@ -130,13 +118,70 @@
       input.addEventListener("keydown", function(e) {
         if (e.key === "Enter") {
           const cmd = input.value.trim();
-          cursor.remove();
           input.disabled = true;
+          if (cmd) {
+            commandHistory.push(cmd);
+            historyIndex = commandHistory.length;
+          }
           processCommand(cmd, line);
+          return;
+        }
+
+        // History navigation
+        if (e.key === "ArrowUp") {
+          if (historyIndex > 0) {
+            historyIndex--;
+            input.value = commandHistory[historyIndex] || "";
+            requestAnimationFrame(() => input.setSelectionRange(input.value.length, input.value.length));
+          }
+          e.preventDefault();
+          return;
+        }
+        if (e.key === "ArrowDown") {
+          if (historyIndex < commandHistory.length - 1) {
+            historyIndex++;
+            input.value = commandHistory[historyIndex] || "";
+          } else {
+            historyIndex = commandHistory.length;
+            input.value = "";
+          }
+          requestAnimationFrame(() => input.setSelectionRange(input.value.length, input.value.length));
+          e.preventDefault();
+          return;
+        }
+
+        // Word-jump navigation (Alt+Arrow)
+        if (e.altKey && e.key === "ArrowLeft") {
+          moveCaretWord(input, -1);
+          e.preventDefault();
+          return;
+        }
+        if (e.altKey && e.key === "ArrowRight") {
+          moveCaretWord(input, 1);
+          e.preventDefault();
+          return;
         }
       });
 
       scrollToBottom();
+    }
+
+    function moveCaretWord(input, dir) {
+      const val = input.value;
+      let pos = input.selectionStart;
+      if (dir < 0) {
+        if (pos === 0) return;
+        let i = pos;
+        while (i > 0 && val[i - 1] === " ") i--;
+        while (i > 0 && val[i - 1] !== " ") i--;
+        input.setSelectionRange(i, i);
+      } else {
+        if (pos >= val.length) return;
+        let i = pos;
+        while (i < val.length && val[i] === " ") i++;
+        while (i < val.length && val[i] !== " ") i++;
+        input.setSelectionRange(i, i);
+      }
     }
 
     function processCommand(cmd, line) {
