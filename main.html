@@ -9,10 +9,10 @@
     *,*::before,*::after{box-sizing:border-box}
     html,body{margin:0;padding:0}
     body{font-family:'Segoe UI',system-ui,Arial,sans-serif;color:#eaf2ff;background:#000;overflow-x:hidden}
-    a{color:#8fd0ff;text-decoration:none}
+    a{color:#8fd0ff;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
     a:hover{text-decoration:underline}
 
-    /* Futuristic animated background (kept from your original, toned slightly) */
+    /* Futuristic animated background */
     body::before{content:"";position:fixed;inset:0;background:radial-gradient(ellipse at top left,#0fffc1,#300060,#000);background-size:200% 200%;animation:bgShift 24s ease infinite;z-index:-2;filter:saturate(115%)}
     @keyframes bgShift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
     body::after{content:"";position:fixed;inset:0;background:linear-gradient(rgba(0,0,0,.55),rgba(0,0,0,.65));z-index:-1}
@@ -41,6 +41,11 @@
 
     /* === Footer === */
     footer{text-align:center;padding:18px;font-size:.9rem;background:rgba(255,255,255,.05);border-top:1px solid rgba(255,255,255,.12)}
+    .footer-links{margin-top:8px;display:flex;justify-content:center;gap:24px}
+    .footer-links a{color:#8fd0ff;transition:color .2s}
+    .footer-links a svg{width:18px;height:18px;fill:currentColor;transition:fill .2s}
+    .footer-links a:hover{color:#c0e8ff}
+    .footer-links a:hover svg{fill:#c0e8ff}
 
     /* === Utilities === */
     .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
@@ -49,7 +54,7 @@
 <body>
   <header>
     <h1 class="title">🌐 Network+ Study Hub</h1>
-    <p class="subtitle">Organized by official domains for N10‑009. Pick a tab to browse.</p>
+    <p class="subtitle">Organized by official domains for N10-009. Pick a tab to browse.</p>
     <nav class="tabs" aria-label="Network+ domains">
       <a href="#fundamentals" class="tab" data-target="fundamentals">1. Fundamentals</a>
       <a href="#implementations" class="tab" data-target="implementations">2. Implementations</a>
@@ -78,10 +83,10 @@
         </article>
         <article class="card">
           <h2>🌍 IP Address Classes</h2>
-          <p>Class A‑E IP ranges, private IPs, and reserved addresses. <br><br><a href="https://creatingcoder.github.io/Network-/ip_classes/IP_main.html" target="_blank" rel="noopener">IP Class Game →</a></p>
+          <p>Class A-E IP ranges, private IPs, and reserved addresses. <br><br><a href="https://creatingcoder.github.io/Network-/ip_classes/IP_main.html" target="_blank" rel="noopener">IP Class Game →</a></p>
         </article>
         <article class="card">
-          <h2>🧠 Wi‑Fi Standards</h2>
+          <h2>🧠 Wi-Fi Standards</h2>
           <p>Test knowledge of 802.11 PHYs (bands, speeds, ranges). <br><br><a href="https://creatingcoder.github.io/Network-/802.11/802.11_main.html" target="_blank" rel="noopener">802.11 Quiz →</a></p>
         </article>
       </div>
@@ -93,13 +98,12 @@
       <div class="grid">
         <article class="card">
           <h2>🚦 Routing & Switching</h2>
-          <p>Distance‑vector vs link‑state, VLANs, trunking, spanning tree concepts, and more. <br><br><a href="https://creatingcoder.github.io/Network-/Routing_Switching/Routing_Switching_main.html" target="_blank" rel="noopener">Routing Quiz →</a></p>
+          <p>Distance-vector vs link-state, VLANs, trunking, spanning tree concepts, and more. <br><br><a href="https://creatingcoder.github.io/Network-/Routing_Switching/Routing_Switching_main.html" target="_blank" rel="noopener">Routing Quiz →</a></p>
         </article>
         <article class="card">
           <h2>👨‍💻 Cisco Practice</h2>
           <p>Practice common Cisco CLI workflows and configs. <br><br><a href="https://creatingcoder.github.io/Network-/cisco/cisco_main.html" target="_blank" rel="noopener">Cisco Practice →</a></p>
         </article>
-        <!-- Add more implementation labs here: NAT/PAT, DHCP relay, VPN types, QoS, etc. -->
       </div>
     </section>
 
@@ -107,18 +111,14 @@
     <section id="operations" class="domain" aria-labelledby="h-operations">
       <h2 id="h-operations" class="sr-only">Network Operations</h2>
       <div class="grid">
-        <!-- Placeholder examples — add your own links/tools for SNMP/Syslog/Docs/Backups -->
         <article class="card">
-          
           <h2>📊 Monitoring</h2>
           <p>SNMP, Syslog, etc. <br><br><a href="https://creatingcoder.github.io/Network-/operations/monitoring_main.html" target="_blank" rel="noopener">Monitoring →</a></p>
         </article>
-        
         <article class="card">
-          <h2>🗂️ Record Types and VPNs </h2>
+          <h2>🗂️ Record Types and VPNs</h2>
           <p>DNS record types and VPN types. <br><br><a href="https://creatingcoder.github.io/Network-/operations/records_vpn_main.html" target="_blank" rel="noopener">Records and VPNs →</a></p>
         </article>
-        
       </div>
     </section>
 
@@ -142,16 +142,45 @@
           <p>Review <code>tracert</code>, <code>ping</code>, <code>ipconfig</code>, and diagnostics. <br><br><a href="https://creatingcoder.github.io/Network-/tools_commands/tools_commands_main.html" target="_blank" rel="noopener">Test Tools Knowledge →</a></p>
         </article>
         <article class="card">
-          <h2>✍🏼 Performance‑Based Questions</h2>
-          <p>Practice PBQs mirroring exam‑style scenarios. <br><br><a href="https://creatingcoder.github.io/Network-/PBQs/PBQ_main.html" target="_blank" rel="noopener">PBQs →</a></p>
+          <h2>✍🏼 Performance-Based Questions</h2>
+          <p>Practice PBQs mirroring exam-style scenarios. <br><br><a href="https://creatingcoder.github.io/Network-/PBQs/PBQ_main.html" target="_blank" rel="noopener">PBQs →</a></p>
         </article>
-        <!-- Add common symptoms & fixes, flowcharts, and log analysis exercises here. -->
       </div>
     </section>
   </main>
 
   <footer>
-    Created for Network+ (N10‑009) preparation — Stay sharp, stay certified!
+    Created for Network+ (N10-009) preparation — Stay sharp, stay certified!
+    <div class="footer-links">
+      <a href="https://www.linkedin.com/in/shane-morgan-cs" target="_blank" rel="noopener">
+        <!-- LinkedIn Icon -->
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 0h-14c-2.76 0-5 2.24-5 
+        5v14c0 2.76 2.24 5 5 5h14c2.76 0 5-2.24 
+        5-5v-14c0-2.76-2.24-5-5-5zm-11 19h-3v-10h3v10zm-1.5-11.29c-.96 
+        0-1.75-.79-1.75-1.75s.79-1.75 
+        1.75-1.75 1.75.79 1.75 1.75-.79 1.75-1.75 
+        1.75zm13.5 11.29h-3v-5.6c0-1.34-.03-3.07-1.87-3.07-1.87 
+        0-2.16 1.46-2.16 2.97v5.7h-3v-10h2.88v1.36h.04c.4-.76 
+        1.37-1.56 2.82-1.56 3.01 0 3.57 1.98 3.57 
+        4.55v5.65z"/></svg>
+        LinkedIn
+      </a>
+      <a href="https://github.com/CreatingCoder" target="_blank" rel="noopener">
+        <!-- GitHub Icon -->
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 .5c-6.63 
+        0-12 5.37-12 12 0 5.3 3.44 9.8 8.2 
+        11.39.6.11.82-.26.82-.58v-2.17c-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.1-.76.08-.74.08-.74 
+        1.21.09 1.85 1.24 1.85 1.24 1.08 1.84 2.83 1.31 
+        3.52 1 .11-.78.42-1.31.76-1.61-2.67-.3-5.47-1.34-5.47-5.95 
+        0-1.31.47-2.38 1.24-3.22-.12-.3-.54-1.52.12-3.16 
+        0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 6 
+        0c2.29-1.55 3.3-1.23 3.3-1.23.66 1.64.24 2.86.12 
+        3.16.77.84 1.24 1.91 1.24 3.22 0 4.62-2.81 5.65-5.49 
+        5.95.43.37.81 1.1.81 2.22v3.29c0 .32.21.7.82.58 
+        4.76-1.59 8.2-6.09 8.2-11.39 0-6.63-5.37-12-12-12z"/></svg>
+        GitHub
+      </a>
+    </div>
   </footer>
 
   <script>
